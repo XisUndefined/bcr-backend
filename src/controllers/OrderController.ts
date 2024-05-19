@@ -3,7 +3,7 @@ import ResponseError from "../utils/ResponseError.js";
 import { Response, Request, NextFunction } from "express";
 import { Order } from "../models/Order.model.js";
 import { deleteCache, getCache, setCache } from "../utils/cache.js";
-import { User, Users } from "../models/User.model.js";
+import { Users } from "../models/User.model.js";
 import ApiFeatures from "../utils/ApiFeatures.js";
 import { Car } from "../models/Car.model.js";
 
@@ -27,9 +27,6 @@ interface OrderRequestBody {
 export default class OrderController {
   static getOrders = asyncErrorHandler(
     async (req: UserRequest, res: Response, next: NextFunction) => {
-      // RETRIEVED USER
-      const user = await User.query().findById(req.user?.id as string);
-
       let orders;
       const orderQuery = Order.query()
         .select(
@@ -44,7 +41,7 @@ export default class OrderController {
         .join("users", "orders.user_id", "users.id")
         .join("cars", "orders.car_id", "cars.id");
 
-      if (user?.role === "admin") {
+      if (req.user?.role === "admin") {
         const cachedOrders = await getCache(`all-${Order.tableName}`);
 
         if (cachedOrders) {
@@ -62,7 +59,9 @@ export default class OrderController {
           .joinUsers();
         orders = await features.query;
       } else {
-        const cachedOrders = await getCache(`${user?.id}-${Order.tableName}`);
+        const cachedOrders = await getCache(
+          `${req.user?.id}-${Order.tableName}`
+        );
 
         if (cachedOrders) {
           res.status(200).json({
@@ -73,7 +72,7 @@ export default class OrderController {
           });
         }
 
-        const features = new ApiFeatures(orderQuery, { userId: user?.id })
+        const features = new ApiFeatures(orderQuery, { userId: req.user?.id })
           .filter()
           .sort()
           .paginate()
@@ -145,7 +144,7 @@ export default class OrderController {
     async (req: UserRequest, res: Response, next: NextFunction) => {
       // CHECK CACHE
       const cacheUserOrder = await getCache(
-        `${Order.tableName}-${req.params.orderId}`
+        `${req.user?.id}-${Order.tableName}-${req.params.orderId}`
       );
 
       if (cacheUserOrder) {
@@ -157,23 +156,36 @@ export default class OrderController {
         });
       }
 
-      const order = await Order.query()
-        .where("id", req.params.orderId)
-        .andWhere("user_id", req.user?.id as string);
+      let order;
+      if (req.user?.role === "admin") {
+        order = await Order.query().where("id", req.params.orderId);
 
-      if (!order) {
-        const error = new ResponseError(
-          "Order with given ID cannot be found!",
-          404
+        if (!order) {
+          const error = new ResponseError(
+            "Order with given ID cannot be found!",
+            404
+          );
+          return next(error);
+        }
+      } else {
+        order = await Order.query()
+          .where("id", req.params.orderId)
+          .andWhere("user_id", req.user?.id as string);
+
+        if (!order) {
+          const error = new ResponseError(
+            "Order with given ID cannot be found!",
+            404
+          );
+          return next(error);
+        }
+
+        await setCache(
+          `${req.user?.id}-${Order.tableName}-${req.params.orderId}`,
+          JSON.stringify(order),
+          3600
         );
-        return next(error);
       }
-
-      await setCache(
-        `${Order.tableName}-${req.params.orderId}`,
-        JSON.stringify(order),
-        3600
-      );
 
       res.status(200).json({
         status: "success",
@@ -188,11 +200,27 @@ export default class OrderController {
 
       if (req.user?.role !== "admin") {
         const file = req.file;
+        if (!file) {
+          const error = new ResponseError(
+            "Transfer slip input field is required. Please upload your transfer slip",
+            400
+          );
+          return next(error);
+        }
+
         const extension = file?.originalname.split(".").slice(-1);
         const filePath = `${file?.fieldname}/${req.user?.id}-${req.params.orderId}.${extension}`;
 
-        orderData = { invoice_image: filePath };
+        orderData = { ...req.body, invoice_image: filePath };
       } else {
+        if (req.file) {
+          const error = new ResponseError(
+            "File upload rejected by the server",
+            400
+          );
+          return next(error);
+        }
+
         orderData = {
           ...req.body,
         };
@@ -212,11 +240,6 @@ export default class OrderController {
       }
 
       await deleteCache(`all-${Order.tableName}`);
-      await setCache(
-        `${Order.tableName}-${req.params.orderId}`,
-        JSON.stringify(updatedOrder),
-        3600
-      );
 
       res.status(200).json({
         status: "success",
