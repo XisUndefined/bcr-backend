@@ -14,8 +14,7 @@ export class Car extends Model {
   category_id!: number;
   plate!: string;
   transmission!: string;
-  manufacture!: string;
-  model!: string;
+  name!: string;
   year!: number;
   driver_service!: boolean;
   rent_per_day!: number;
