@@ -13,6 +13,8 @@ export class Order extends Model {
   id!: string;
   user_id!: string;
   car_id!: string;
+  bank!: string;
+  invoice_image?: string;
   status!: string;
   price!: number;
   start_rent!: Date;

@@ -106,7 +106,7 @@ export default class CarController {
 
       if (!car) {
         const error = new ResponseError(
-          "Car with that ID cannot be found!",
+          "Car with given ID cannot be found!",
           404
         );
         return next(error);
@@ -131,10 +131,6 @@ export default class CarController {
       res: Response,
       next: NextFunction
     ) => {
-      const file = req.file;
-      const extension = file?.originalname.split(".").slice(-1);
-      const path = `${file?.fieldname}/${req.body.plate}.${extension}`;
-
       // CEK KATEGORI
       let categoryEntry = await Category.query().findOne({
         category: req.body.category,
@@ -147,16 +143,37 @@ export default class CarController {
         });
       }
 
-      const carData = {
-        ...req.body,
-        category_id: categoryEntry.id,
-        image: path,
-      };
+      let carData;
+
+      if (req.file) {
+        const file = req.file;
+        const extension = file?.originalname.split(".").slice(-1);
+        const filePath = `${file?.fieldname}/${req.body.plate}.${extension}`;
+
+        carData = {
+          ...req.body,
+          category_id: categoryEntry.id,
+          image: filePath,
+        };
+      } else {
+        carData = {
+          ...req.body,
+          category_id: categoryEntry.id,
+        };
+      }
 
       const updatedCar = await Car.query().patchAndFetchById(
         req.params.id as string,
         carData
       );
+
+      if (!updatedCar) {
+        const error = new ResponseError(
+          "Car with given ID cannot be found!",
+          404
+        );
+        return next(error);
+      }
 
       await deleteCache(`all-${Car.tableName}`);
       await setCache(
@@ -164,14 +181,6 @@ export default class CarController {
         JSON.stringify(updatedCar),
         3600
       );
-
-      if (!updatedCar) {
-        const error = new ResponseError(
-          "Car with that ID cannot be found!",
-          404
-        );
-        return next(error);
-      }
 
       res.status(200).json({
         status: "success",

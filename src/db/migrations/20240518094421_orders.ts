@@ -7,8 +7,16 @@ export async function up(knex: Knex): Promise<void> {
     table.foreign("user_id").references("users.id");
     table.uuid("car_id").notNullable();
     table.foreign("car_id").references("cars.id");
+    table.enum("bank", ["mandiri", "bca", "bni"]).notNullable();
+    table.string("invoice_image");
     table
-      .enum("status", ["pending", "process", "complete"])
+      .enum("status", [
+        "pending",
+        "on-process",
+        "approved",
+        "rejected",
+        "completed",
+      ])
       .defaultTo("pending");
     table.integer("price").notNullable();
     table.timestamp("start_rent", { useTz: true }).notNullable();
