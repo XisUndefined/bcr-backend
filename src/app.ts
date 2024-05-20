@@ -13,7 +13,7 @@ import { globalErrorMiddleware } from "./middleware/errorMiddleware.js";
 const app: Express = express();
 
 // MIDDLEWARE
-app.use(express.urlencoded());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // USE ROUTE

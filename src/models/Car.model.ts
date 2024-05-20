@@ -6,8 +6,9 @@ import Objection, {
 } from "objection";
 import { Order } from "./Order.model.js";
 import { Category } from "./Category.model.js";
+import BaseModel from "./BaseModel.js";
 
-export class Car extends Model {
+export class Car extends BaseModel {
   static tableName = "cars";
 
   id!: string;

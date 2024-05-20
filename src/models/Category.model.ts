@@ -1,7 +1,8 @@
 import { Model, RelationMappings, ModelObject } from "objection";
 import { Car } from "./Car.model.js";
+import BaseModel from "./BaseModel.js";
 
-export class Category extends Model {
+export class Category extends BaseModel {
   static tableName = "categories";
 
   id!: number;

@@ -60,6 +60,10 @@ export default class AuthController {
         return next(error);
       }
 
+      if (req.body.lastname === "") delete req.body.lastname;
+      if (req.body.role) delete req.body.role;
+      if (req.body.id) delete req.body.id;
+
       const newUser = await User.query().insert(req.body);
 
       sendResponseToken(newUser, 201, res);

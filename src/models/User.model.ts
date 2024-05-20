@@ -3,11 +3,13 @@ import Objection, {
   RelationMappings,
   ModelObject,
   CreateValidationErrorArgs,
+  JSONSchema,
 } from "objection";
 import bcrypt from "bcrypt";
 import { Order } from "./Order.model.js";
+import BaseModel from "./BaseModel.js";
 
-export class User extends Model {
+export class User extends BaseModel {
   static tableName = "users";
 
   id!: string;
@@ -15,10 +17,23 @@ export class User extends Model {
   lastname?: string;
   email!: string;
   password!: string;
+  private _confirmPassword?: string;
   avatar?: string;
   role!: string;
   created_at!: Date;
   updated_at!: Date;
+
+  static get jsonSchema(): JSONSchema {
+    return {
+      type: "object",
+      required: ["email", "password"],
+      properties: {
+        email: { type: "string", format: "email" },
+        password: { type: "string", minLength: 6 },
+        confirmPassword: { type: "string" },
+      },
+    };
+  }
 
   async $beforeInsert(context: Objection.QueryContext) {
     await super.$beforeInsert(context);
@@ -53,8 +68,8 @@ export class User extends Model {
           type: "ValidationError",
         }) as CreateValidationErrorArgs;
       }
-      this.password = await bcrypt.hash(this.password, 12);
-    } else if (!this.avatar) {
+    }
+    if (!this.avatar) {
       if (this.lastname) {
         this.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
           this.firstname
@@ -65,6 +80,9 @@ export class User extends Model {
         )}&size=128`;
       }
     }
+    this.validatePassword();
+    delete this._confirmPassword;
+    this.password = await bcrypt.hash(this.password, 12);
 
     this.created_at = new Date();
     this.updated_at = new Date();
@@ -106,10 +124,28 @@ export class User extends Model {
           type: "ValidationError",
         }) as CreateValidationErrorArgs;
       }
-      this.password = await bcrypt.hash(this.password, 12);
     }
-
+    this.validatePassword();
+    delete this._confirmPassword;
+    this.password = await bcrypt.hash(this.password, 12);
     this.updated_at = new Date();
+  }
+
+  set confirmPassword(value: string) {
+    this._confirmPassword = value;
+  }
+
+  get confirmPassword(): string {
+    return this._confirmPassword!;
+  }
+
+  validatePassword() {
+    if (this.password !== this._confirmPassword) {
+      throw new Objection.ValidationError({
+        message: "Confirm password does not match",
+        type: "ValidationError",
+      });
+    }
   }
 
   async comparePassword(password: string): Promise<boolean> {
