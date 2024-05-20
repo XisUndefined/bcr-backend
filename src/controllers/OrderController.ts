@@ -173,7 +173,7 @@ export default class OrderController {
 
       let order;
       if (req.user?.role === "admin") {
-        order = await Order.query().where("id", req.params.orderId);
+        order = await Order.query().where("id", req.params.orderId).first();
 
         if (!order) {
           const error = new ResponseError(
@@ -185,7 +185,8 @@ export default class OrderController {
       } else {
         order = await Order.query()
           .where("id", req.params.orderId)
-          .andWhere("user_id", req.user?.id as string);
+          .andWhere("user_id", req.user?.id as string)
+          .first();
 
         if (!order) {
           const error = new ResponseError(
@@ -241,18 +242,22 @@ export default class OrderController {
         };
       }
 
-      const updatedOrder = await Order.query().patchAndFetchById(
-        req.params.orderId as string,
-        orderData
+      const selectedOrder = await Order.query().findById(
+        req.params.orderId as string
       );
 
-      if (!updatedOrder) {
+      if (!selectedOrder) {
         const error = new ResponseError(
           "Order with given ID cannot be found!",
           404
         );
         return next(error);
       }
+
+      const updatedOrder = await Order.query().patchAndFetchById(
+        req.params.orderId as string,
+        orderData
+      );
 
       await deleteCache(`all-${Order.tableName}`);
 

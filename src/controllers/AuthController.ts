@@ -50,9 +50,7 @@ export default class AuthController {
       res: Response,
       next: NextFunction
     ) => {
-      const user = await User.query().where({
-        email: req.body.email,
-      });
+      const user = await User.query().findOne({ email: req.body.email });
 
       if (user) {
         const error = new ResponseError(
@@ -113,7 +111,11 @@ export default class AuthController {
     async (req: UserRequest, _: Response, next: NextFunction) => {
       // CHECK TOKEN IN THE REQUEST HEADER
       const testToken = req.headers.authorization;
-      if (!testToken || !testToken.startsWith("bearer ")) {
+      if (
+        !testToken ||
+        !testToken.startsWith("bearer ") ||
+        !testToken.startsWith("Bearer ")
+      ) {
         const error = new ResponseError("You are not logged in!", 401);
         return next(error);
       }
@@ -155,7 +157,11 @@ export default class AuthController {
   static logout = asyncErrorHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const testToken = req.headers.authorization;
-      if (!testToken || !testToken.startsWith("bearer ")) {
+      if (
+        !testToken ||
+        !testToken.startsWith("bearer ") ||
+        !testToken.startsWith("Bearer ")
+      ) {
         const error = new ResponseError("You are not logged in!", 401);
         return next(error);
       }

@@ -189,18 +189,20 @@ export default class CarController {
         };
       }
 
-      const updatedCar = await Car.query().patchAndFetchById(
-        req.params.id as string,
-        carData
-      );
+      const selectedCar = await Car.query().findById(req.params.id as string);
 
-      if (!updatedCar) {
+      if (!selectedCar) {
         const error = new ResponseError(
           "Car with given ID cannot be found!",
           404
         );
         return next(error);
       }
+
+      const updatedCar = await Car.query().patchAndFetchById(
+        req.params.id as string,
+        carData
+      );
 
       await deleteCache(`all-${Car.tableName}`);
       await setCache(
