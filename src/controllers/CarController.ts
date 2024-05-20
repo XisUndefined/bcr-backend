@@ -15,7 +15,8 @@ interface CarRequestBody extends Partial<Cars> {
   category: string;
 }
 
-interface AdminRequest extends Request<{ id?: string }, {}, CarRequestBody> {
+interface AdminRequest
+  extends Request<{ id?: string; category?: string }, {}, CarRequestBody> {
   user?: Users;
 }
 
@@ -259,6 +260,56 @@ export default class CarController {
       res.status(204).json({
         status: "success",
         data: null,
+      });
+    }
+  );
+
+  static getCarByCategory = asyncErrorHandler(
+    async (req: AdminRequest, res: Response, next: NextFunction) => {
+      // CHECK ADMIN
+      if (req.user?.role !== "admin") {
+        const error = new ResponseError(
+          "The current user do not have the authorization of accesing this route",
+          403
+        );
+
+        return next(error);
+      }
+
+      // CHECK CACHE
+      const cachedCars = await getCache(
+        `${req.params.category}-${Car.tableName}`
+      );
+
+      if (cachedCars) {
+        res.status(200).json({
+          status: "success",
+          data: {
+            cars: JSON.parse(cachedCars),
+          },
+        });
+      }
+
+      const features = new ApiFeatures(
+        Car.query()
+          .joinRelated("category")
+          .select("cars.*")
+          .where("category.category", req.params.category as string)
+      )
+        .filter()
+        .sort();
+      const cars = await features.query;
+      await setCache(
+        `${req.params.category}-${Car.tableName}`,
+        JSON.stringify(cars),
+        3600
+      );
+
+      res.status(200).json({
+        status: "success",
+        data: {
+          cars,
+        },
       });
     }
   );

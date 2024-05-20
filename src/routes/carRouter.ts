@@ -30,4 +30,8 @@ router
     CarController.deleteCarById
   );
 
+router
+  .route("/:category")
+  .get(AuthController.protect, CarController.getCarByCategory);
+
 export default router;
