@@ -9,19 +9,28 @@ import fs from "fs";
 import path from "path";
 import { access, unlink } from "fs/promises";
 import ApiFeatures from "../utils/ApiFeatures.js";
+import { Users } from "../models/User.model.js";
 
 interface CarRequestBody extends Partial<Cars> {
   category: string;
 }
 
+interface AdminRequest extends Request<{ id?: string }, {}, CarRequestBody> {
+  user?: Users;
+}
+
+interface UserRequest extends Request {
+  user?: Users;
+}
+
 export default class CarController {
   static getCars = asyncErrorHandler(
-    async (req: Request, res: Response, next: NextFunction) => {
+    async (req: UserRequest, res: Response, next: NextFunction) => {
       let cars;
-      const hasQueryParams = Object.keys(req.query).length > 0;
 
-      if (!hasQueryParams) {
+      if (req.user && req.user.role === "admin") {
         const cachedCars = await getCache(`all-${Car.tableName}`);
+
         if (cachedCars) {
           res.status(200).json({
             status: "success",
@@ -31,8 +40,14 @@ export default class CarController {
           });
         }
 
-        cars = await Car.query();
-      } else {
+        const features = new ApiFeatures(Car.query()).filter().sort();
+        cars = await features.query;
+        await setCache(`all-${Car.tableName}`, JSON.stringify(cars), 3600);
+      }
+
+      const hasQueryParams = Object.keys(req.query).length > 0;
+
+      if (hasQueryParams) {
         const features = new ApiFeatures(Car.query(), req.query)
           .filter()
           .sort()
@@ -50,11 +65,16 @@ export default class CarController {
   );
 
   static createCar = asyncErrorHandler(
-    async (
-      req: Request<{}, {}, CarRequestBody>,
-      res: Response,
-      next: NextFunction
-    ) => {
+    async (req: AdminRequest, res: Response, next: NextFunction) => {
+      if (req.user?.role !== "admin") {
+        const error = new ResponseError(
+          "The current user do not have the authorization of accesing this route",
+          403
+        );
+
+        return next(error);
+      }
+
       const file = req.file;
       const extension = file?.originalname.split(".").slice(-1);
       const path = `${file?.fieldname}/${req.body.plate}.${extension}`;
@@ -126,11 +146,17 @@ export default class CarController {
   );
 
   static updateCarById = asyncErrorHandler(
-    async (
-      req: Request<{ id?: string }, {}, CarRequestBody>,
-      res: Response,
-      next: NextFunction
-    ) => {
+    async (req: AdminRequest, res: Response, next: NextFunction) => {
+      // CHECK THE USER AUTHORIZATION
+      if (req.user?.role !== "admin") {
+        const error = new ResponseError(
+          "The current user do not have the authorization of accesing this route",
+          403
+        );
+
+        return next(error);
+      }
+
       // CEK KATEGORI
       let categoryEntry = await Category.query().findOne({
         category: req.body.category,
@@ -192,11 +218,16 @@ export default class CarController {
   );
 
   static deleteCarById = asyncErrorHandler(
-    async (
-      req: Request<{ id?: string }>,
-      res: Response,
-      next: NextFunction
-    ) => {
+    async (req: AdminRequest, res: Response, next: NextFunction) => {
+      if (req.user?.role !== "admin") {
+        const error = new ResponseError(
+          "The current user do not have the authorization of accesing this route",
+          403
+        );
+
+        return next(error);
+      }
+
       const selectedCar = await Car.query().findById(req.params.id as string);
 
       if (!selectedCar) {

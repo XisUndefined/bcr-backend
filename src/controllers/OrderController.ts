@@ -24,6 +24,10 @@ interface OrderRequestBody {
   endDate: string;
 }
 
+interface UserRequestCreateOrder extends Request<{}, {}, OrderRequestBody> {
+  user?: Users;
+}
+
 export default class OrderController {
   static getOrders = asyncErrorHandler(
     async (req: UserRequest, res: Response, next: NextFunction) => {
@@ -58,6 +62,7 @@ export default class OrderController {
           .sort()
           .joinUsers();
         orders = await features.query;
+        await setCache(`all-${Order.tableName}`, JSON.stringify(orders), 3600);
       } else {
         const cachedOrders = await getCache(
           `${req.user?.id}-${Order.tableName}`
@@ -79,6 +84,11 @@ export default class OrderController {
           .joinUsers();
 
         orders = await features.query;
+        await setCache(
+          `${req.user?.id}-${Order.tableName}`,
+          JSON.stringify(orders),
+          3600
+        );
       }
 
       res.status(200).json({
@@ -91,11 +101,16 @@ export default class OrderController {
   );
 
   static createOrder = asyncErrorHandler(
-    async (
-      req: Request<{}, {}, OrderRequestBody>,
-      res: Response,
-      next: NextFunction
-    ) => {
+    async (req: UserRequestCreateOrder, res: Response, next: NextFunction) => {
+      // MAKE SURE THE USER THAT TRYING TO CREATE ORDER IS NOT AN ADMIN
+      if (req.user?.role === "admin") {
+        const error = new ResponseError(
+          "The current user do not have the authorization of accesing this route",
+          403
+        );
+        return next(error);
+      }
+
       // CHECK IF THE CAR ID IN THE REQUEST BODY AVAILABLE
       const carAvailable = await Car.query()
         .where("id", req.body.carId)

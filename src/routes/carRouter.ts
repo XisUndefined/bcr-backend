@@ -7,14 +7,9 @@ const router = express.Router();
 
 router
   .route("/")
-  .get(
-    AuthController.protect,
-    AuthController.verifyAdmin,
-    CarController.getCars
-  )
+  .get(AuthController.protect, CarController.getCars)
   .post(
     AuthController.protect,
-    AuthController.verifyAdmin,
     uploadMiddleware.single("car"),
     CarController.createCar
   );
@@ -26,13 +21,11 @@ router
   .get(CarController.getCarById)
   .patch(
     AuthController.protect,
-    AuthController.verifyAdmin,
     uploadMiddleware.single("car"),
     CarController.updateCarById
   )
   .delete(
     AuthController.protect,
-    AuthController.verifyAdmin,
     uploadMiddleware.single("car"),
     CarController.deleteCarById
   );

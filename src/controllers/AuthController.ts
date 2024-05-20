@@ -152,24 +152,6 @@ export default class AuthController {
     }
   );
 
-  static verifyAdmin = asyncErrorHandler(
-    async (req: UserRequest, _: Response, next: NextFunction) => {
-      // RETRIVED USER
-      const user = await User.query().findById(req.user?.id as string);
-
-      // VERIFIED IF THE USER IS AN ADMIN
-      if (user?.role !== "admin") {
-        const error = new ResponseError(
-          "The current user do not have the authorization of accesing this route",
-          403
-        );
-        return next(error);
-      }
-
-      next();
-    }
-  );
-
   static logout = asyncErrorHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const testToken = req.headers.authorization;
