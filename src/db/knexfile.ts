@@ -1,7 +1,7 @@
 import type { Knex } from "knex";
 import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({ path: "../../.env" });
 
 // Update with your config settings.
 
@@ -14,10 +14,10 @@ const config: { [key: string]: Knex.Config } = {
       password: process.env.DB_PASSWORD,
     },
     migrations: {
-      directory: "./src/db/migrations",
+      directory: "./migrations",
     },
     seeds: {
-      directory: "./src/db/seeds",
+      directory: "./seeds",
     },
   },
   production: {
@@ -28,10 +28,10 @@ const config: { [key: string]: Knex.Config } = {
       password: process.env.DB_PASSWORD,
     },
     migrations: {
-      directory: "./src/db/migrations",
+      directory: "./migrations",
     },
     seeds: {
-      directory: "./src/db/seeds",
+      directory: "./seeds",
     },
   },
 };

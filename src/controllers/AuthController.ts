@@ -115,11 +115,7 @@ export default class AuthController {
     async (req: UserRequest, _: Response, next: NextFunction) => {
       // CHECK TOKEN IN THE REQUEST HEADER
       const testToken = req.headers.authorization;
-      if (
-        !testToken ||
-        !testToken.startsWith("bearer ") ||
-        !testToken.startsWith("Bearer ")
-      ) {
+      if (!testToken || !testToken.startsWith("Bearer ")) {
         const error = new ResponseError("You are not logged in!", 401);
         return next(error);
       }

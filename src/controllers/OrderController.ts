@@ -6,6 +6,7 @@ import { deleteCache, getCache, setCache } from "../utils/cache.js";
 import { Users } from "../models/User.model.js";
 import ApiFeatures from "../utils/ApiFeatures.js";
 import { Car } from "../models/Car.model.js";
+import { cloudinary } from "../utils/cloudinary.js";
 
 interface UserRequest extends Request {
   user?: Users;
@@ -17,7 +18,6 @@ interface UserRequestUpload
 }
 
 interface OrderRequestBody {
-  userId: string;
   carId: string;
   bank: string;
   startDate: string;
@@ -57,10 +57,7 @@ export default class OrderController {
           });
         }
 
-        const features = new ApiFeatures(orderQuery)
-          .filter()
-          .sort()
-          .joinUsers();
+        const features = new ApiFeatures(orderQuery).filter().sort();
         orders = await features.query;
         await setCache(`all-${Order.tableName}`, JSON.stringify(orders), 3600);
       } else {
@@ -138,7 +135,7 @@ export default class OrderController {
         carAvailable.rent_per_day;
 
       const newOrder = await Order.query().insert({
-        user_id: req.body.userId,
+        user_id: req.user?.id,
         car_id: req.body.carId,
         bank: req.body.bank,
         price,
@@ -215,8 +212,7 @@ export default class OrderController {
       let orderData;
 
       if (req.user?.role !== "admin") {
-        const file = req.file;
-        if (!file) {
+        if (!req.file) {
           const error = new ResponseError(
             "Transfer slip input field is required. Please upload your transfer slip",
             400
@@ -224,10 +220,38 @@ export default class OrderController {
           return next(error);
         }
 
-        const extension = file?.originalname.split(".").slice(-1);
-        const filePath = `${file?.fieldname}/${req.user?.id}-${req.params.orderId}.${extension}`;
+        const fileBase64 = req.file.buffer.toString("base64");
+        const file = `data:${req.file.mimetype};base64,${fileBase64}`;
 
-        orderData = { ...req.body, invoice_image: filePath };
+        const result = await cloudinary.uploader.upload(file, {
+          public_id: `binar-car-rental/upload/data/slip/${req.user?.id}-slip`,
+        });
+
+        orderData = { transfer_image: result.secure_url };
+
+        const selectedOrder = await Order.query().patchAndFetchById(
+          req.params.orderId as string,
+          orderData
+        );
+
+        if (!selectedOrder) {
+          const error = new ResponseError(
+            "Order with given ID cannot be found!",
+            404
+          );
+          return next(error);
+        }
+
+        const updatedOrder = await Order.query().patchAndFetchById(
+          req.params.orderId as string,
+          orderData
+        );
+        await deleteCache(`all-${Order.tableName}`);
+
+        res.status(200).json({
+          status: "success",
+          data: updatedOrder,
+        });
       } else {
         if (req.file) {
           const error = new ResponseError(
@@ -238,33 +262,33 @@ export default class OrderController {
         }
 
         orderData = {
-          ...req.body,
+          status: req.body.status,
         };
+
+        const selectedOrder = await Order.query()
+          .where("id", req.params.orderId as string)
+          .andWhere("user_id", req.user?.id as string)
+          .first();
+
+        if (!selectedOrder) {
+          const error = new ResponseError(
+            "Order with given ID cannot be found!",
+            404
+          );
+          return next(error);
+        }
+
+        const updatedOrder = await Order.query()
+          .where("id", req.params.orderId as string)
+          .andWhere("user_id", req.user?.id as string)
+          .first();
+        await deleteCache(`all-${Order.tableName}`);
+
+        res.status(200).json({
+          status: "success",
+          data: updatedOrder,
+        });
       }
-
-      const selectedOrder = await Order.query().findById(
-        req.params.orderId as string
-      );
-
-      if (!selectedOrder) {
-        const error = new ResponseError(
-          "Order with given ID cannot be found!",
-          404
-        );
-        return next(error);
-      }
-
-      const updatedOrder = await Order.query().patchAndFetchById(
-        req.params.orderId as string,
-        orderData
-      );
-
-      await deleteCache(`all-${Order.tableName}`);
-
-      res.status(200).json({
-        status: "success",
-        data: updatedOrder,
-      });
     }
   );
 }

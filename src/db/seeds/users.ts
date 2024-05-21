@@ -24,8 +24,8 @@ export async function seed(knex: Knex): Promise<void> {
     },
     {
       firstname: "Pridana",
-      email: "pridanakbar@gmail.com",
-      password: await hashedPassword("yelanwangy69"),
+      email: "pridanfadhilah@gmail.com",
+      password: await hashedPassword("Yelanwangy69"),
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
         "Pridana"
       )}&size=128`,
@@ -36,7 +36,7 @@ export async function seed(knex: Knex): Promise<void> {
       firstname: "Amario",
       lastname: "Harlastputra",
       email: "amariofausta@gmail.com",
-      password: await hashedPassword("muhlis43edan"),
+      password: await hashedPassword("Afasta_6868"),
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
         "Amario"
       )}+${encodeURIComponent("Harlastputra")}&size=128`,

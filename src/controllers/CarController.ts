@@ -3,20 +3,12 @@ import ResponseError from "../utils/ResponseError.js";
 import { Request, Response, NextFunction } from "express";
 import { Car, Cars } from "../models/Car.model.js";
 import { setCache, getCache, deleteCache } from "../utils/cache.js";
-import { Category } from "../models/Category.model.js";
-import { fileURLToPath } from "url";
-import fs from "fs";
-import path from "path";
-import { access, unlink } from "fs/promises";
+// import { Category } from "../models/Category.model.js";
 import ApiFeatures from "../utils/ApiFeatures.js";
 import { Users } from "../models/User.model.js";
+import { cloudinary } from "../utils/cloudinary.js";
 
-interface CarRequestBody extends Partial<Cars> {
-  category: string;
-}
-
-interface AdminRequest
-  extends Request<{ id?: string; category?: string }, {}, CarRequestBody> {
+interface AdminRequest extends Request<{ id?: string; category?: string }, {}> {
   user?: Users;
 }
 
@@ -29,31 +21,42 @@ export default class CarController {
     async (req: UserRequest, res: Response, next: NextFunction) => {
       let cars;
 
-      if (req.user && req.user.role === "admin") {
-        const cachedCars = await getCache(`all-${Car.tableName}`);
+      if (req.path === "/") {
+        if (req.user && req.user.role === "admin") {
+          const cachedCars = await getCache(`all-${Car.tableName}`);
 
-        if (cachedCars) {
+          if (cachedCars) {
+            res.status(200).json({
+              status: "success",
+              data: {
+                cars: JSON.parse(cachedCars),
+              },
+            });
+          }
+
+          const features = new ApiFeatures(Car.query()).filter().sort();
+          cars = await features.query;
+          await setCache(`all-${Car.tableName}`, JSON.stringify(cars), 3600);
+        }
+      } else if (req.path === "/search") {
+        if (!req.query.date || !req.query.time) {
           res.status(200).json({
             status: "success",
             data: {
-              cars: JSON.parse(cachedCars),
+              cars,
             },
           });
         }
 
-        const features = new ApiFeatures(Car.query()).filter().sort();
-        cars = await features.query;
-        await setCache(`all-${Car.tableName}`, JSON.stringify(cars), 3600);
-      }
+        const hasQueryParams = Object.keys(req.query).length > 0;
 
-      const hasQueryParams = Object.keys(req.query).length > 0;
-
-      if (hasQueryParams) {
-        const features = new ApiFeatures(Car.query(), req.query)
-          .filter()
-          .sort()
-          .paginate();
-        cars = await features.query;
+        if (hasQueryParams) {
+          const features = new ApiFeatures(Car.query(), req.query)
+            .filter()
+            .sort()
+            .paginate();
+          cars = await features.query;
+        }
       }
 
       res.status(200).json({
@@ -76,30 +79,77 @@ export default class CarController {
         return next(error);
       }
 
-      const file = req.file;
-      const extension = file?.originalname.split(".").slice(-1);
-      const path = `${file?.fieldname}/${req.body.plate}.${extension}`;
+      if (
+        !req.body.category ||
+        !req.body.plate ||
+        !req.body.transmission ||
+        !req.body.name ||
+        !req.body.year ||
+        !req.body.driver_service ||
+        !req.body.rent_per_day ||
+        !req.body.capacity ||
+        !req.body.description
+      ) {
+        const error = new ResponseError(
+          "All required fields must not be empty",
+          400
+        );
+        return next(error);
+      }
 
-      // CEK KATEGORI
-      let categoryEntry = await Category.query().findOne({
-        category: req.body.category,
-      });
+      if (req.body.driver_service.toLowerCase.includes(["true", "false"])) {
+        const error = new ResponseError(
+          "Invalid input for driver_service field",
+          400
+        );
+        return next(error);
+      }
 
-      // BUAT KATEGORI BARU JIKA BELUM ADA
-      if (!categoryEntry) {
-        categoryEntry = await Category.query().insert({
-          category: req.body.category,
+      const plateRegex =
+        /^(A|B|D|F|T|Z|E|H|G|K|R|AB|AD|AE|AG|S|K|W|L|M|N|P|BL|BB|BK|BA|BM|BH|BG|BN|BE|BD|B|DA|KT|DB|DL|DM|DN|DT|DD|DC|DS|DE|DG|DH|EB|ED|EA|PA|PB)\s([0-9]{1,4})\s([A-Z]{1,3})$/g;
+
+      if (!plateRegex.test(req.body.plate)) {
+        const error = new ResponseError("Invalid car plate number", 400);
+        return next(error);
+      }
+
+      if (req.body.id) delete req.body.id;
+
+      if (req.file) {
+        const fileBase64 = req.file.buffer.toString("base64");
+        const file = `data:${req.file.mimetype};base64,${fileBase64}`;
+
+        const result = await cloudinary.uploader.upload(file, {
+          public_id: `binar-car-rental/upload/data/car/${req.body.plate}`,
+        });
+
+        const carData = {
+          ...req.body,
+          year: parseInt(req.body.year),
+          driver_service: req.body.driver_service === "true",
+          rent_per_day: parseInt(req.body.rent_per_day),
+          capacity: parseInt(req.body.capacity),
+          image: result.secure_url,
+        };
+
+        const newCar = await Car.query().insert(carData);
+        await deleteCache(`all-${Car.tableName}`);
+
+        res.status(201).json({
+          status: "success",
+          data: newCar,
         });
       }
 
       const carData = {
         ...req.body,
-        category_id: categoryEntry.id,
-        image: path,
+        year: parseInt(req.body.year),
+        driver_service: req.body.driver_service === "true",
+        rent_per_day: parseInt(req.body.rent_per_day),
+        capacity: parseInt(req.body.capacity),
       };
 
       const newCar = await Car.query().insert(carData);
-
       await deleteCache(`all-${Car.tableName}`);
 
       res.status(201).json({
@@ -158,36 +208,41 @@ export default class CarController {
         return next(error);
       }
 
-      // CEK KATEGORI
-      let categoryEntry = await Category.query().findOne({
-        category: req.body.category,
-      });
-
-      // BUAT KATEGORI BARU JIKA BELUM ADA
-      if (!categoryEntry) {
-        categoryEntry = await Category.query().insert({
-          category: req.body.category,
-        });
+      if (
+        !req.body.category ||
+        !req.body.plate ||
+        !req.body.transmission ||
+        !req.body.name ||
+        !req.body.year ||
+        !req.body.driver_service ||
+        !req.body.rent_per_day ||
+        !req.body.capacity ||
+        !req.body.description
+      ) {
+        const error = new ResponseError(
+          "All required fields must not be empty",
+          400
+        );
+        return next(error);
       }
 
-      let carData;
-
-      if (req.file) {
-        const file = req.file;
-        const extension = file?.originalname.split(".").slice(-1);
-        const filePath = `${file?.fieldname}/${req.body.plate}.${extension}`;
-
-        carData = {
-          ...req.body,
-          category_id: categoryEntry.id,
-          image: filePath,
-        };
-      } else {
-        carData = {
-          ...req.body,
-          category_id: categoryEntry.id,
-        };
+      if (req.body.driver_service.toLowerCase.includes(["true", "false"])) {
+        const error = new ResponseError(
+          "Invalid input for driver_service field",
+          400
+        );
+        return next(error);
       }
+
+      const plateRegex =
+        /^(A|B|D|F|T|Z|E|H|G|K|R|AB|AD|AE|AG|S|K|W|L|M|N|P|BL|BB|BK|BA|BM|BH|BG|BN|BE|BD|B|DA|KT|DB|DL|DM|DN|DT|DD|DC|DS|DE|DG|DH|EB|ED|EA|PA|PB)\s([0-9]{1,4})\s([A-Z]{1,3})$/g;
+
+      if (!plateRegex.test(req.body.plate)) {
+        const error = new ResponseError("Invalid car plate number", 400);
+        return next(error);
+      }
+
+      if (req.body.id) delete req.body.id;
 
       const selectedCar = await Car.query().findById(req.params.id as string);
 
@@ -199,23 +254,45 @@ export default class CarController {
         return next(error);
       }
 
-      const updatedCar = await Car.query().patchAndFetchById(
+      let carData;
+
+      if (req.file) {
+        const fileBase64 = req.file.buffer.toString("base64");
+        const file = `data:${req.file.mimetype};base64,${fileBase64}`;
+
+        if (req.body.plate !== selectedCar.plate) {
+          await cloudinary.uploader.rename(
+            `binar-car-rental/upload/data/car/${selectedCar.plate}`,
+            `binar-car-rental/upload/data/car/${req.body.plate}`
+          );
+        }
+
+        const result = await cloudinary.uploader.upload(file, {
+          public_id: `binar-car-rental/upload/data/car/${req.body.plate}`,
+        });
+
+        carData = {
+          image: result.secure_url,
+        };
+      }
+
+      carData = {
+        ...req.body,
+        year: parseInt(req.body.year),
+        driver_service: req.body.driver_service === "true",
+        rent_per_day: parseInt(req.body.rent_per_day),
+        capacity: parseInt(req.body.capacity),
+      };
+
+      const newCar = await Car.query().patchAndFetchById(
         req.params.id as string,
         carData
       );
-
       await deleteCache(`all-${Car.tableName}`);
-      await setCache(
-        `${Car.tableName}-${req.params.id}`,
-        JSON.stringify(updatedCar),
-        3600
-      );
 
       res.status(200).json({
         status: "success",
-        data: {
-          cars: updatedCar,
-        },
+        data: newCar,
       });
     }
   );
@@ -241,27 +318,17 @@ export default class CarController {
         return next(error);
       }
 
-      const __filename = fileURLToPath(import.meta.url);
-      const __dirname = path.dirname(__filename);
-      const fileNameToDelete = selectedCar.image.split("/").slice(-1);
-
-      const filePathToDelete = path.join(
-        __dirname,
-        "../../public/uploads/data/car",
-        fileNameToDelete[0]
-      );
-
-      await access(filePathToDelete, fs.constants.F_OK);
-      await unlink(filePathToDelete);
-
       await Car.query().deleteById(req.params.id as string);
+      const result = cloudinary.uploader.destroy(
+        `binar-car-rental/upload/data/car/${selectedCar.plate}`
+      );
 
       await deleteCache(`all-${Car.tableName}`);
       await deleteCache(`${Car.tableName}-${req.params.id}`);
 
       res.status(204).json({
         status: "success",
-        data: null,
+        data: result,
       });
     }
   );
@@ -293,10 +360,7 @@ export default class CarController {
       }
 
       const features = new ApiFeatures(
-        Car.query()
-          .joinRelated("category")
-          .select("cars.*")
-          .where("category.category", req.params.category as string)
+        Car.query().where("category", req.params.category as string)
       )
         .filter()
         .sort();

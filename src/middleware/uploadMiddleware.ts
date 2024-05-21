@@ -1,21 +1,7 @@
 import multer from "multer";
 import ResponseError from "../utils/ResponseError.js";
 
-const storage = multer.diskStorage({
-  destination: (req, file, callback) => {
-    callback(null, "../public/upload/data");
-  },
-  filename: (req, file, callback) => {
-    const extension = file.originalname.split(".").slice(-1);
-
-    callback(
-      null,
-      `${file.fieldname}/${
-        req.body.plate ? req.body.plate : req.body.avatar
-      }.${extension}`
-    );
-  },
-});
+const storage = multer.memoryStorage();
 
 const uploadMiddleware = multer({
   storage,

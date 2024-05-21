@@ -3,6 +3,7 @@ import Objection, {
   RelationMappings,
   ModelObject,
   CreateValidationErrorArgs,
+  JSONSchema,
 } from "objection";
 import { User } from "./User.model.js";
 import { Car } from "./Car.model.js";
@@ -15,13 +16,39 @@ export class Order extends BaseModel {
   user_id!: string;
   car_id!: string;
   bank!: string;
-  invoice_image?: string;
+  transfer_image?: string;
   status!: string;
   price!: number;
   start_rent!: Date;
   finish_rent!: Date;
   created_at!: Date;
   updated_at!: Date;
+
+  static get jsonSchema(): JSONSchema {
+    return {
+      type: "object",
+      required: [
+        "user_id",
+        "car_id",
+        "bank",
+        "price",
+        "start_rent",
+        "finish_rent",
+      ],
+      properties: {
+        user_id: { type: "string", format: "uuid" },
+        car_id: { type: "string", format: "uuid" },
+        bank: { type: "string", enum: ["mandiri", "bca", "bni"] },
+        status: {
+          type: "string",
+          enum: ["pending", "on-process", "approved", "rejected", "completed"],
+        },
+        price: { type: "number" },
+        start_rent: { type: "string", format: "date-time" },
+        finish_date: { type: "string", format: "date-time" },
+      },
+    };
+  }
 
   async $beforeInsert(context: Objection.QueryContext) {
     await super.$beforeInsert(context);

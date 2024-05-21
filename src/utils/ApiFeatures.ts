@@ -14,42 +14,35 @@ export default class ApiFeatures<T extends Model> {
   }
 
   public filter(): this {
-    if (this.queryStr?.filter) {
-      const filters = JSON.parse(this.queryStr.filter);
-      if (filters.date && filters.time) {
-        const { startDate, endDate } = parseDateRange(
-          filters.date,
-          filters.time
-        );
-        this.query = this.query.whereNotExists(function () {
-          this.select("car_id")
-            .from("orders")
-            .where("start_rent", "<", endDate)
-            .andWhere("finish_rent", ">", startDate)
-            .andWhereRaw("cars.id = orders.car_id");
-        });
-      }
-      if (filters.capacity) {
-        this.query = this.query.where(
-          "capacity",
-          ">=",
-          parseInt(filters.capacity)
-        );
-      }
-      if (filters.driverService !== undefined) {
-        this.query = this.query.where("driver_service", filters.driverService);
-      }
-      for (const key in filters) {
-        if (
-          key !== "date" &&
-          key !== "time" &&
-          key !== "capacity" &&
-          key !== "driverService"
-        ) {
-          this.query = this.query.where(key, filters[key]);
-        }
-      }
+    if (this.queryStr?.date && this.queryStr?.time) {
+      const { startDate, endDate } = parseDateRange(
+        this.queryStr.date,
+        this.queryStr.time
+      );
+      this.query = this.query.whereNotExists(function () {
+        this.select("car_id")
+          .from("orders")
+          .where("start_rent", "<", endDate)
+          .andWhere("finish_rent", ">", startDate)
+          .andWhereRaw("cars.id = orders.car_id");
+      });
     }
+
+    if (this.queryStr?.capacity) {
+      this.query = this.query.where(
+        "capacity",
+        ">=",
+        parseInt(this.queryStr.capacity)
+      );
+    }
+
+    if (this.queryStr?.driver_service) {
+      this.query = this.query.where(
+        "driver_service",
+        this.queryStr.driver_service
+      );
+    }
+
     return this;
   }
 
