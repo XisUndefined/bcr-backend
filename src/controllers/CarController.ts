@@ -26,37 +26,28 @@ export default class CarController {
           const cachedCars = await getCache(`all-${Car.tableName}`);
 
           if (cachedCars) {
-            res.status(200).json({
-              status: "success",
-              data: {
-                cars: JSON.parse(cachedCars),
-              },
-            });
+            cars = JSON.parse(cachedCars);
+          } else {
+            const features = new ApiFeatures(Car.query()).filter().sort();
+            cars = await features.query;
+            await setCache(`all-${Car.tableName}`, JSON.stringify(cars), 3600);
           }
-
-          const features = new ApiFeatures(Car.query()).filter().sort();
-          cars = await features.query;
-          await setCache(`all-${Car.tableName}`, JSON.stringify(cars), 3600);
         }
       } else if (req.path === "/search") {
-        if (!req.query.date || !req.query.time) {
-          res.status(200).json({
-            status: "success",
-            data: {
-              cars,
-            },
-          });
+        if (!req.query.date || !req.query.time || !req.query.driver_service) {
+          const error = new ResponseError(
+            "All required fields must not be empty",
+            400
+          );
+          return next(error);
         }
 
-        const hasQueryParams = Object.keys(req.query).length > 0;
+        const features = new ApiFeatures(Car.query(), req.query)
+          .filter()
+          .sort()
+          .paginate();
 
-        if (hasQueryParams) {
-          const features = new ApiFeatures(Car.query(), req.query)
-            .filter()
-            .sort()
-            .paginate();
-          cars = await features.query;
-        }
+        cars = await features.query;
       }
 
       res.status(200).json({
@@ -97,7 +88,7 @@ export default class CarController {
         return next(error);
       }
 
-      if (req.body.driver_service.toLowerCase.includes(["true", "false"])) {
+      if (!["true", "false"].includes(req.body.driver_service.toLowerCase())) {
         const error = new ResponseError(
           "Invalid input for driver_service field",
           400
@@ -115,6 +106,8 @@ export default class CarController {
 
       if (req.body.id) delete req.body.id;
 
+      let carData;
+
       if (req.file) {
         const fileBase64 = req.file.buffer.toString("base64");
         const file = `data:${req.file.mimetype};base64,${fileBase64}`;
@@ -123,25 +116,13 @@ export default class CarController {
           public_id: `binar-car-rental/upload/data/car/${req.body.plate}`,
         });
 
-        const carData = {
-          ...req.body,
-          year: parseInt(req.body.year),
-          driver_service: req.body.driver_service === "true",
-          rent_per_day: parseInt(req.body.rent_per_day),
-          capacity: parseInt(req.body.capacity),
+        carData = {
           image: result.secure_url,
         };
-
-        const newCar = await Car.query().insert(carData);
-        await deleteCache(`all-${Car.tableName}`);
-
-        res.status(201).json({
-          status: "success",
-          data: newCar,
-        });
       }
 
-      const carData = {
+      carData = {
+        ...carData,
         ...req.body,
         year: parseInt(req.body.year),
         driver_service: req.body.driver_service === "true",
@@ -161,33 +142,31 @@ export default class CarController {
 
   static getCarById = asyncErrorHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      // CHECK CACHE
-      const cachedCars = await getCache(`${Car.tableName}-${req.params.id}`);
+      const selectedCar = await Car.query().findById(req.params.id);
 
-      if (cachedCars) {
-        res.status(200).json({
-          status: "success",
-          data: {
-            cars: JSON.parse(cachedCars),
-          },
-        });
-      }
-
-      const car = await Car.query().findById(req.params.id);
-
-      if (!car) {
+      if (!selectedCar) {
         const error = new ResponseError(
-          "Car with given ID cannot be found!",
+          "Car with given ID cannot be found",
           404
         );
         return next(error);
       }
 
-      await setCache(
-        `${Car.tableName}-${req.params.id}`,
-        JSON.stringify(car),
-        3600
-      );
+      // CHECK CACHE
+      const cachedCar = await getCache(`${Car.tableName}-${req.params.id}`);
+
+      let car;
+
+      if (cachedCar) {
+        car = JSON.parse(cachedCar);
+      } else {
+        car = await Car.query().findById(req.params.id);
+        await setCache(
+          `${Car.tableName}-${req.params.id}`,
+          JSON.stringify(car),
+          3600
+        );
+      }
 
       res.status(200).json({
         status: "success",
@@ -226,7 +205,7 @@ export default class CarController {
         return next(error);
       }
 
-      if (req.body.driver_service.toLowerCase.includes(["true", "false"])) {
+      if (!["true", "false"].includes(req.body.driver_service.toLowerCase())) {
         const error = new ResponseError(
           "Invalid input for driver_service field",
           400
@@ -277,6 +256,7 @@ export default class CarController {
       }
 
       carData = {
+        ...carData,
         ...req.body,
         year: parseInt(req.body.year),
         driver_service: req.body.driver_service === "true",
@@ -289,6 +269,18 @@ export default class CarController {
         carData
       );
       await deleteCache(`all-${Car.tableName}`);
+
+      const cachedCar = await getCache(`${Car.tableName}-${req.params.id}`);
+      if (cachedCar) {
+        await deleteCache(`${Car.tableName}-${req.params.id}`);
+      }
+
+      const cachedCategory = await getCache(
+        `${selectedCar.category}-${Car.tableName}`
+      );
+      if (cachedCategory) {
+        await deleteCache(`${selectedCar.category}-${Car.tableName}`);
+      }
 
       res.status(200).json({
         status: "success",
@@ -325,6 +317,7 @@ export default class CarController {
 
       await deleteCache(`all-${Car.tableName}`);
       await deleteCache(`${Car.tableName}-${req.params.id}`);
+      await deleteCache(`${selectedCar.category}-${Car.tableName}`);
 
       res.status(204).json({
         status: "success",
@@ -350,26 +343,23 @@ export default class CarController {
         `${req.params.category}-${Car.tableName}`
       );
 
-      if (cachedCars) {
-        res.status(200).json({
-          status: "success",
-          data: {
-            cars: JSON.parse(cachedCars),
-          },
-        });
-      }
+      let cars;
 
-      const features = new ApiFeatures(
-        Car.query().where("category", req.params.category as string)
-      )
-        .filter()
-        .sort();
-      const cars = await features.query;
-      await setCache(
-        `${req.params.category}-${Car.tableName}`,
-        JSON.stringify(cars),
-        3600
-      );
+      if (cachedCars) {
+        cars = JSON.parse(cachedCars);
+      } else {
+        const features = new ApiFeatures(
+          Car.query().where("category", req.params.category as string)
+        )
+          .filter()
+          .sort();
+        cars = await features.query;
+        await setCache(
+          `${req.params.category}-${Car.tableName}`,
+          JSON.stringify(cars),
+          3600
+        );
+      }
 
       res.status(200).json({
         status: "success",

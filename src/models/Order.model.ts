@@ -43,7 +43,7 @@ export class Order extends BaseModel {
           type: "string",
           enum: ["pending", "on-process", "approved", "rejected", "completed"],
         },
-        price: { type: "number" },
+        price: { type: "number", minimum: 1 },
         start_rent: { type: "string", format: "date-time" },
         finish_date: { type: "string", format: "date-time" },
       },

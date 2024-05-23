@@ -49,43 +49,37 @@ export default class OrderController {
         const cachedOrders = await getCache(`all-${Order.tableName}`);
 
         if (cachedOrders) {
-          res.status(200).json({
-            status: "success",
-            data: {
-              orders: JSON.parse(cachedOrders),
-            },
-          });
+          orders = JSON.parse(cachedOrders);
+        } else {
+          const features = new ApiFeatures(orderQuery).filter().sort();
+          orders = await features.query;
+          await setCache(
+            `all-${Order.tableName}`,
+            JSON.stringify(orders),
+            3600
+          );
         }
-
-        const features = new ApiFeatures(orderQuery).filter().sort();
-        orders = await features.query;
-        await setCache(`all-${Order.tableName}`, JSON.stringify(orders), 3600);
       } else {
         const cachedOrders = await getCache(
           `${req.user?.id}-${Order.tableName}`
         );
 
         if (cachedOrders) {
-          res.status(200).json({
-            status: "success",
-            data: {
-              orders: JSON.parse(cachedOrders),
-            },
-          });
+          orders = JSON.parse(cachedOrders);
+        } else {
+          const features = new ApiFeatures(orderQuery, { userId: req.user?.id })
+            .filter()
+            .sort()
+            .paginate()
+            .joinUsers();
+
+          orders = await features.query;
+          await setCache(
+            `${req.user?.id}-${Order.tableName}`,
+            JSON.stringify(orders),
+            3600
+          );
         }
-
-        const features = new ApiFeatures(orderQuery, { userId: req.user?.id })
-          .filter()
-          .sort()
-          .paginate()
-          .joinUsers();
-
-        orders = await features.query;
-        await setCache(
-          `${req.user?.id}-${Order.tableName}`,
-          JSON.stringify(orders),
-          3600
-        );
       }
 
       res.status(200).json({
@@ -154,50 +148,51 @@ export default class OrderController {
 
   static getOrderById = asyncErrorHandler(
     async (req: UserRequest, res: Response, next: NextFunction) => {
-      // CHECK CACHE
-      const cacheUserOrder = await getCache(
-        `${req.user?.id}-${Order.tableName}-${req.params.orderId}`
-      );
+      const selectedOrder = await Order.query().findById(req.params.orderId);
 
-      if (cacheUserOrder) {
-        res.status(200).json({
-          status: "success",
-          data: {
-            order: JSON.parse(cacheUserOrder),
-          },
-        });
+      if (!selectedOrder) {
+        const error = new ResponseError(
+          "Order with given ID cannot be found!",
+          404
+        );
+        return next(error);
       }
 
       let order;
-      if (req.user?.role === "admin") {
-        order = await Order.query().where("id", req.params.orderId).first();
 
-        if (!order) {
-          const error = new ResponseError(
-            "Order with given ID cannot be found!",
-            404
+      if (req.user?.role === "admin") {
+        const cacheOrder = await getCache(
+          `${Order.tableName}-${req.params.orderId}`
+        );
+
+        if (cacheOrder) {
+          order = JSON.parse(cacheOrder);
+        } else {
+          order = await Order.query().where("id", req.params.orderId).first();
+          await setCache(
+            `${Order.tableName}-${req.params.orderId}`,
+            JSON.stringify(order),
+            3600
           );
-          return next(error);
         }
       } else {
-        order = await Order.query()
-          .where("id", req.params.orderId)
-          .andWhere("user_id", req.user?.id as string)
-          .first();
-
-        if (!order) {
-          const error = new ResponseError(
-            "Order with given ID cannot be found!",
-            404
-          );
-          return next(error);
-        }
-
-        await setCache(
-          `${req.user?.id}-${Order.tableName}-${req.params.orderId}`,
-          JSON.stringify(order),
-          3600
+        const cacheUserOrder = await getCache(
+          `${req.user?.id}-${Order.tableName}-${req.params.orderId}`
         );
+
+        if (cacheUserOrder) {
+          order = JSON.parse(cacheUserOrder);
+        } else {
+          order = await Order.query()
+            .where("id", req.params.orderId)
+            .andWhere("user_id", req.user?.id as string)
+            .first();
+          await setCache(
+            `${req.user?.id}-${Order.tableName}-${req.params.orderId}`,
+            JSON.stringify(order),
+            3600
+          );
+        }
       }
 
       res.status(200).json({
@@ -209,6 +204,18 @@ export default class OrderController {
 
   static updateOrderById = asyncErrorHandler(
     async (req: UserRequestUpload, res: Response, next: NextFunction) => {
+      const selectedOrder = await Order.query().findById(
+        req.params.orderId as string
+      );
+
+      if (!selectedOrder) {
+        const error = new ResponseError(
+          "Order with given ID cannot be found!",
+          404
+        );
+        return next(error);
+      }
+
       let orderData;
 
       if (req.user?.role !== "admin") {
@@ -229,29 +236,12 @@ export default class OrderController {
 
         orderData = { transfer_image: result.secure_url };
 
-        const selectedOrder = await Order.query().patchAndFetchById(
-          req.params.orderId as string,
-          orderData
-        );
-
-        if (!selectedOrder) {
-          const error = new ResponseError(
-            "Order with given ID cannot be found!",
-            404
-          );
-          return next(error);
-        }
-
         const updatedOrder = await Order.query().patchAndFetchById(
           req.params.orderId as string,
           orderData
         );
-        await deleteCache(`all-${Order.tableName}`);
 
-        res.status(200).json({
-          status: "success",
-          data: updatedOrder,
-        });
+        orderData = updatedOrder;
       } else {
         if (req.file) {
           const error = new ResponseError(
@@ -265,30 +255,36 @@ export default class OrderController {
           status: req.body.status,
         };
 
-        const selectedOrder = await Order.query()
-          .where("id", req.params.orderId as string)
-          .andWhere("user_id", req.user?.id as string)
-          .first();
+        const updatedOrder = await Order.query().patchAndFetchById(
+          req.params.orderId as string,
+          orderData
+        );
 
-        if (!selectedOrder) {
-          const error = new ResponseError(
-            "Order with given ID cannot be found!",
-            404
-          );
-          return next(error);
-        }
-
-        const updatedOrder = await Order.query()
-          .where("id", req.params.orderId as string)
-          .andWhere("user_id", req.user?.id as string)
-          .first();
-        await deleteCache(`all-${Order.tableName}`);
-
-        res.status(200).json({
-          status: "success",
-          data: updatedOrder,
-        });
+        orderData = updatedOrder;
       }
+
+      await deleteCache(`all-${Order.tableName}`);
+
+      const cachedOrderId = await getCache(
+        `${Order.tableName}-${req.params.orderId}`
+      );
+      if (cachedOrderId) {
+        await deleteCache(`${Order.tableName}-${req.params.orderId}`);
+      }
+
+      const cachedUserOrder = await getCache(
+        `${selectedOrder.user_id}-${Order.tableName}-${req.params.orderId}`
+      );
+      if (cachedUserOrder) {
+        await deleteCache(
+          `${selectedOrder.user_id}-${Order.tableName}-${req.params.orderId}`
+        );
+      }
+
+      res.status(200).json({
+        status: "success",
+        data: orderData,
+      });
     }
   );
 }

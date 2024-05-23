@@ -42,7 +42,7 @@ export class Car extends BaseModel {
         plate: { type: "string" },
         transmission: { type: "string" },
         name: { type: "string", maxLength: 50 },
-        year: { type: "number" },
+        year: { type: "number", minimum: 1 },
         driver_service: { type: "boolean" },
         rent_per_day: { type: "number" },
         image: { type: "string" },

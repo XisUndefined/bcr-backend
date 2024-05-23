@@ -157,11 +157,7 @@ export default class AuthController {
   static logout = asyncErrorHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const testToken = req.headers.authorization;
-      if (
-        !testToken ||
-        !testToken.startsWith("bearer ") ||
-        !testToken.startsWith("Bearer ")
-      ) {
+      if (!testToken || !testToken.startsWith("Bearer ")) {
         const error = new ResponseError("You are not logged in!", 401);
         return next(error);
       }
