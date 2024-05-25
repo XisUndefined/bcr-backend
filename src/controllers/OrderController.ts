@@ -139,6 +139,13 @@ export default class OrderController {
 
       await deleteCache(`all-${Order.tableName}`);
 
+      const cachedUserOrder = await getCache(
+        `${req.user?.id}-${Order.tableName}`
+      );
+      if (cachedUserOrder) {
+        await deleteCache(`${req.user?.id}-${Order.tableName}`);
+      }
+
       res.status(201).json({
         status: "success",
         data: newOrder,
