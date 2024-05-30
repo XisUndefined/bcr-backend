@@ -1,9 +1,8 @@
 import { asyncErrorHandler } from "../utils/AsyncErrorHandler.js";
 import ResponseError from "../utils/ResponseError.js";
 import { Request, Response, NextFunction } from "express";
-import { Car, Cars } from "../models/Car.model.js";
+import { Car } from "../models/Car.model.js";
 import { setCache, getCache, deleteCache } from "../utils/cache.js";
-// import { Category } from "../models/Category.model.js";
 import ApiFeatures from "../utils/ApiFeatures.js";
 import { Users } from "../models/User.model.js";
 import { cloudinary } from "../utils/cloudinary.js";
@@ -311,7 +310,7 @@ export default class CarController {
       }
 
       await Car.query().deleteById(req.params.id as string);
-      const result = cloudinary.uploader.destroy(
+      await cloudinary.uploader.destroy(
         `binar-car-rental/upload/data/car/${selectedCar.plate}`
       );
 
@@ -319,9 +318,9 @@ export default class CarController {
       await deleteCache(`${Car.tableName}-${req.params.id}`);
       await deleteCache(`${selectedCar.category}-${Car.tableName}`);
 
-      res.status(204).json({
+      res.status(202).json({
         status: "success",
-        data: result,
+        data: selectedCar,
       });
     }
   );
