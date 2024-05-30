@@ -90,25 +90,20 @@ export class User extends BaseModel {
   }
 
   validatePassword() {
-    if (this.password.length < 8) {
+    if (!/[0-9]/.test(this.password)) {
       throw new Objection.ValidationError({
-        message: "The password must be at least 8 characters long",
-        type: "ValidationError",
-      } as CreateValidationErrorArgs);
-    } else if (!/[0-9]/.test(this.password)) {
-      throw new Objection.ValidationError({
-        message: " The password must contain at least one number",
-        type: "ValidationError",
+        message: "The password must contain at least one number",
+        type: "ModelValidation",
       } as CreateValidationErrorArgs);
     } else if (!/[A-Z]/.test(this.password)) {
       throw new Objection.ValidationError({
         message: "The password must contain at least one uppercase letter",
-        type: "ValidationError",
+        type: "ModelValidation",
       }) as CreateValidationErrorArgs;
     } else if (!/[a-z]/.test(this.password)) {
       throw new Objection.ValidationError({
         message: "The password must contain at least one lowercase letter",
-        type: "ValidationError",
+        type: "ModelValidation",
       }) as CreateValidationErrorArgs;
     } else if (
       !/[\!\@\#\$\%\^\&\*\(\)\_\+\-\=\[\]\{\}\;\:\'\"\,\<\.\>\/\?\|\\]/.test(
@@ -117,12 +112,12 @@ export class User extends BaseModel {
     ) {
       throw new Objection.ValidationError({
         message: "The password must contain at least one special character",
-        type: "ValidationError",
+        type: "ModelValidation",
       }) as CreateValidationErrorArgs;
     } else if (this.password !== this._confirmPassword) {
       throw new Objection.ValidationError({
         message: "Confirm password does not match",
-        type: "ValidationError",
+        type: "ModelValidation",
       });
     }
   }

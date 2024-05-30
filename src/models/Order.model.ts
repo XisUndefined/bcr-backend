@@ -52,31 +52,37 @@ export class Order extends BaseModel {
 
   async $beforeInsert(context: Objection.QueryContext) {
     await super.$beforeInsert(context);
-    if (this.start_rent) {
-      if (
-        new Date(this.start_rent) <
-        new Date(new Date().setDate(new Date().getDate() + 1))
-      ) {
-        throw new Objection.ValidationError({
-          message: "Start date must be at least 1 day after today's date",
-          type: "ValidationError",
-        }) as CreateValidationErrorArgs;
-      }
-    }
-    if (this.finish_rent) {
-      const isMaximumSevenDays = () => {
-        const startRentValue = new Date(this.start_rent);
-        const sevenDaysLater = new Date(startRentValue);
-        sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
 
-        return new Date(this.finish_rent) > sevenDaysLater;
-      };
-      if (isMaximumSevenDays()) {
-        throw new Objection.ValidationError({
-          message: "Finish rent date must be within 7 days of start rent date",
-          type: "ValidationError",
-        }) as CreateValidationErrorArgs;
-      }
+    if (
+      new Date(this.start_rent) <
+      new Date(new Date().setDate(new Date().getDate() + 1))
+    ) {
+      throw new Objection.ValidationError({
+        message: "Start date must be at least 1 day after today's date",
+        type: "ModelValidation",
+      }) as CreateValidationErrorArgs;
+    }
+
+    if (new Date(this.start_rent) > new Date(this.finish_rent)) {
+      throw new Objection.ValidationError({
+        message: "Finish rent date must not be before the start rent date",
+        type: "ModelValidation",
+      });
+    }
+
+    const isMaximumSevenDays = () => {
+      const startRentValue = new Date(this.start_rent);
+      const sevenDaysLater = new Date(startRentValue);
+      sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+
+      return new Date(this.finish_rent) > sevenDaysLater;
+    };
+
+    if (isMaximumSevenDays()) {
+      throw new Objection.ValidationError({
+        message: "Finish rent date must be within 7 days of start rent date",
+        type: "ModelValidation",
+      }) as CreateValidationErrorArgs;
     }
 
     this.created_at = new Date();

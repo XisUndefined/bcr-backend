@@ -81,7 +81,7 @@ export class Car extends BaseModel {
       if (isPlate()) {
         throw new Objection.ValidationError({
           message: "Invalid car plate number",
-          type: "ValidationError",
+          type: "ModelValidation",
         }) as CreateValidationErrorArgs;
       }
     }
