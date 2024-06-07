@@ -7,6 +7,7 @@ export async function seed(knex: Knex): Promise<void> {
   // Inserts seed entries
   await knex("cars").insert([
     {
+      created_by: "2395ef91-8684-4c4e-8d55-8ccf01233b42",
       plate: "B 7869 GUH",
       transmission: "Automatic",
       name: "Ford F150",
@@ -23,6 +24,7 @@ export async function seed(knex: Knex): Promise<void> {
       updated_at: new Date(),
     },
     {
+      created_by: "2395ef91-8684-4c4e-8d55-8ccf01233b42",
       plate: "VM 651 H",
       transmission: "Manual",
       name: "Suzuki Esteem",

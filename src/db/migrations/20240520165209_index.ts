@@ -11,13 +11,18 @@ export async function up(knex: Knex): Promise<void> {
         table.string("email").notNullable().unique();
         table.string("password").notNullable();
         table.string("avatar");
-        table.enu("role", ["user", "admin"]).defaultTo("user");
+        table
+          .enu("role", ["customer", "admin", "superadmin"])
+          .defaultTo("customer");
         table.timestamps(true, true);
       })
 
       // create cars table
       .createTable("cars", (table: Knex.TableBuilder) => {
         table.uuid("id").primary().defaultTo(knex.fn.uuid());
+        table.uuid("created_by").notNullable();
+        table.uuid("updated_by");
+        table.uuid("deleted_by");
         table.string("plate").notNullable().unique();
         table.string("transmission").notNullable();
         table.string("name").notNullable();
@@ -28,6 +33,7 @@ export async function up(knex: Knex): Promise<void> {
         table.integer("capacity").notNullable();
         table.enu("category", ["small", "medium", "large"]).notNullable();
         table.text("description").notNullable();
+        table.timestamp("deleted_at", { useTz: true });
         table.timestamps(true, true);
       })
 

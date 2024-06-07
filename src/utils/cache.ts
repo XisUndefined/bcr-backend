@@ -19,4 +19,24 @@ export const deleteCache = async (key: string) => {
   await redis.del(key);
 };
 
+export const deleteKeysByPrefix = async (prefix: string): Promise<void> => {
+  const stream = redis.scanStream({
+    match: `${prefix}*`,
+    count: 100,
+  });
+
+  stream.on("data", async (keys: string[]) => {
+    if (keys.length) {
+      const pipeline = redis.pipeline();
+      keys.forEach((key) => pipeline.del(key));
+      await pipeline.exec();
+    }
+  });
+
+  return new Promise((resolve, reject) => {
+    stream.on("end", resolve);
+    stream.on("error", reject);
+  });
+};
+
 export default redis;

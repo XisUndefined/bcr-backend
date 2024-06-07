@@ -1,37 +1,23 @@
 import express from "express";
 import CarController from "../controllers/CarController.js";
 import uploadMiddleware from "../middleware/uploadMiddleware.js";
-import AuthController from "../controllers/AuthController.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 router
   .route("/")
-  .get(AuthController.protect, CarController.getCars)
-  .post(
-    AuthController.protect,
-    uploadMiddleware.single("car"),
-    CarController.createCar
-  );
+  .get(authMiddleware, CarController.getCars)
+  .post(authMiddleware, uploadMiddleware.single("car"), CarController.create);
 
-router.route("/search").get(CarController.getCars);
+router.route("/search").get(CarController.search);
 
 router
   .route("/:id")
-  .get(CarController.getCarById)
-  .patch(
-    AuthController.protect,
-    uploadMiddleware.single("car"),
-    CarController.updateCarById
-  )
-  .delete(
-    AuthController.protect,
-    uploadMiddleware.single("car"),
-    CarController.deleteCarById
-  );
+  .get(CarController.getById)
+  .patch(authMiddleware, uploadMiddleware.single("car"), CarController.update)
+  .delete(authMiddleware, uploadMiddleware.single("car"), CarController.delete);
 
-router
-  .route("/:category")
-  .get(AuthController.protect, CarController.getCarByCategory);
+router.route("/:category").get(authMiddleware, CarController.getByCategory);
 
 export default router;

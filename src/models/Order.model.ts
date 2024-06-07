@@ -1,9 +1,9 @@
-import Objection, {
+import {
   Model,
   RelationMappings,
   ModelObject,
-  CreateValidationErrorArgs,
-  JSONSchema,
+  QueryContext,
+  ModelOptions,
 } from "objection";
 import { User } from "./User.model.js";
 import { Car } from "./Car.model.js";
@@ -24,75 +24,72 @@ export class Order extends BaseModel {
   created_at!: Date;
   updated_at!: Date;
 
-  static get jsonSchema(): JSONSchema {
-    return {
-      type: "object",
-      required: [
-        "user_id",
-        "car_id",
-        "bank",
-        "price",
-        "start_rent",
-        "finish_rent",
-      ],
-      properties: {
-        user_id: { type: "string", format: "uuid" },
-        car_id: { type: "string", format: "uuid" },
-        bank: { type: "string", enum: ["mandiri", "bca", "bni"] },
-        status: {
-          type: "string",
-          enum: ["pending", "on-process", "approved", "rejected", "completed"],
-        },
-        price: { type: "number", minimum: 1 },
-        start_rent: { type: "string", format: "date-time" },
-        finish_date: { type: "string", format: "date-time" },
-      },
-    };
-  }
+  // static get jsonSchema(): JSONSchema {
+  //   return {
+  //     type: "object",
+  //     required: [
+  //       "user_id",
+  //       "car_id",
+  //       "bank",
+  //       "price",
+  //       "start_rent",
+  //       "finish_rent",
+  //     ],
+  //     properties: {
+  //       user_id: { type: "string", format: "uuid" },
+  //       car_id: { type: "string", format: "uuid" },
+  //       bank: { type: "string", enum: ["mandiri", "bca", "bni"] },
+  //       status: {
+  //         type: "string",
+  //         enum: ["pending", "on-process", "approved", "rejected", "completed"],
+  //       },
+  //       price: { type: "number", minimum: 1 },
+  //       start_rent: { type: "string", format: "date-time" },
+  //       finish_date: { type: "string", format: "date-time" },
+  //     },
+  //   };
+  // }
 
-  async $beforeInsert(context: Objection.QueryContext) {
+  async $beforeInsert(context: QueryContext) {
     await super.$beforeInsert(context);
 
-    if (
-      new Date(this.start_rent) <
-      new Date(new Date().setDate(new Date().getDate() + 1))
-    ) {
-      throw new Objection.ValidationError({
-        message: "Start date must be at least 1 day after today's date",
-        type: "ModelValidation",
-      }) as CreateValidationErrorArgs;
-    }
+    // if (
+    //   new Date(this.start_rent) <
+    //   new Date(new Date().setDate(new Date().getDate() + 1))
+    // ) {
+    //   throw new Objection.ValidationError({
+    //     message: "Start date must be at least 1 day after today's date",
+    //     type: "ModelValidation",
+    //   }) as CreateValidationErrorArgs;
+    // }
 
-    if (new Date(this.start_rent) > new Date(this.finish_rent)) {
-      throw new Objection.ValidationError({
-        message: "Finish rent date must not be before the start rent date",
-        type: "ModelValidation",
-      });
-    }
+    // if (new Date(this.start_rent) > new Date(this.finish_rent)) {
+    //   throw new Objection.ValidationError({
+    //     message: "Finish rent date must not be before the start rent date",
+    //     type: "ModelValidation",
+    //   });
+    // }
 
-    const isMaximumSevenDays = () => {
-      const startRentValue = new Date(this.start_rent);
-      const sevenDaysLater = new Date(startRentValue);
-      sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+    // const isMaximumSevenDays = () => {
+    //   const startRentValue = new Date(this.start_rent);
+    //   const sevenDaysLater = new Date(startRentValue);
+    //   sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
 
-      return new Date(this.finish_rent) > sevenDaysLater;
-    };
+    //   return new Date(this.finish_rent) > sevenDaysLater;
+    // };
 
-    if (isMaximumSevenDays()) {
-      throw new Objection.ValidationError({
-        message: "Finish rent date must be within 7 days of start rent date",
-        type: "ModelValidation",
-      }) as CreateValidationErrorArgs;
-    }
+    // if (isMaximumSevenDays()) {
+    //   throw new Objection.ValidationError({
+    //     message: "Finish rent date must be within 7 days of start rent date",
+    //     type: "ModelValidation",
+    //   }) as CreateValidationErrorArgs;
+    // }
 
     this.created_at = new Date();
     this.updated_at = new Date();
   }
 
-  async $beforeUpdate(
-    opt: Objection.ModelOptions,
-    context: Objection.QueryContext
-  ) {
+  async $beforeUpdate(opt: ModelOptions, context: QueryContext) {
     await super.$beforeUpdate(opt, context);
     this.updated_at = new Date();
   }

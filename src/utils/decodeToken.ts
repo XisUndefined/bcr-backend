@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import ResponseError from "./ResponseError.js";
 
 interface IVerifiedUserType {
   id: string;
@@ -14,7 +15,7 @@ export const decodeToken = async (
     if (jwtSecret) {
       jwt.verify(token, jwtSecret, (err, decoded) => {
         if (err) {
-          return reject(err);
+          throw new ResponseError(`Invalid token: ${err.message}`, 498);
         }
         if (typeof decoded === "object") {
           resolve(decoded as IVerifiedUserType);
