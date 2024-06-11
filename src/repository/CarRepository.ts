@@ -11,6 +11,10 @@ import { Paging } from "../types/page.js";
 import { Order } from "../models/Order.model.js";
 
 export default class CarRepository {
+  static async count(query: QueryBuilder<Car, Car[]>) {
+    return await query.resultSize();
+  }
+
   static async get(
     query: QueryBuilder<Car, Car[]>,
     paging?: Paging,

@@ -47,11 +47,12 @@ export default class CarValidation {
     file: fileSchema,
   });
 
-  static readonly CATEGORY: ZodType = z
-    .object({
-      category: carBaseSchema.shape.category.optional(),
-    })
-    .optional();
+  static readonly CATEGORY: ZodType = z.object({
+    category: carBaseSchema.shape.category.optional(),
+    sort: z.string().optional(),
+    page: z.number().positive(),
+    size: z.number().positive(),
+  });
 
   static readonly SEARCH: ZodType = z.object({
     start_date: z.string().datetime("Invalid date or time"),
@@ -59,7 +60,7 @@ export default class CarValidation {
     driver_service: z.boolean(),
     capacity: z.number().min(1).max(10).optional(),
     sort: z.string().optional(),
-    page: z.number().positive().optional(),
-    size: z.number().positive().optional(),
+    page: z.number().positive(),
+    size: z.number().positive(),
   });
 }

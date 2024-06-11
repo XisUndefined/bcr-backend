@@ -6,6 +6,7 @@ import carRouter from "./routes/carRouter.js";
 import authRouter from "./routes/authRouter.js";
 import orderRouter from "./routes/orderRouter.js";
 import userRouter from "./routes/userRouter.js";
+import adminRouter from "./routes/adminRouter.js";
 
 // IMPORT CONTROLLER, HANDLER, AND MIDDLEWARE
 import ResponseError from "./utils/ResponseError.js";
@@ -22,6 +23,7 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/cars", carRouter);
 app.use("/api/v1/order", orderRouter);
 app.use("/api/v1/user", userRouter);
+app.use("/api/v1/admin", adminRouter);
 
 app.all("*", (req, res, next) => {
   const err = new ResponseError(

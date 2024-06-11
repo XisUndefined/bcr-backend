@@ -10,13 +10,6 @@ import { UserRequest } from "../types/users.js";
 export const authMiddleware = asyncErrorHandler(
   async (req: UserRequest, res: Response, next: NextFunction) => {
     const testToken = req.headers.authorization;
-    if (!testToken && req.baseUrl.split("/")[3].startsWith("cars")) {
-      const error = new ResponseError(
-        "The resource requested could not be found on the server",
-        404
-      );
-      return next(error);
-    }
     if (!testToken || !testToken.startsWith("Bearer")) {
       const error = new ResponseError("You are not logged in!", 401);
       return next(error);
@@ -42,17 +35,6 @@ export const authMiddleware = asyncErrorHandler(
         .where({ id: decodedToken.id })
         .throwIfNotFound("The user with the given token does not exist")
     );
-
-    if (
-      req.baseUrl.split("/")[3].startsWith("cars") &&
-      findUser[0].role === "customer"
-    ) {
-      const error = new ResponseError(
-        "The resource requested could not be found on the server",
-        404
-      );
-      return next(error);
-    }
 
     req.user = findUser[0];
     next();

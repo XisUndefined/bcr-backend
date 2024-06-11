@@ -15,27 +15,31 @@ import CarValidation from "../validations/CarValidation.js";
 import { Validation } from "../validations/validation.js";
 
 export default class CarService {
-  static async get(user: Users, paging: Paging, request?: CarCategoryParams) {
-    const parsedParams = Validation.validate(CarValidation.CATEGORY, request);
+  static async get(user: Users, request: CarCategoryParams & Paging) {
+    if (user.role === "customer") {
+      throw new ResponseError(
+        "The current user do not have the authorization of accessing this route",
+        403
+      );
+    }
 
-    const queryParams = paging;
-    queryParams.page = paging.page ? Number(paging.page) : 1;
-    queryParams.size = paging.size ? Number(paging.size) : 10;
+    const parsedRequest = Validation.validate(CarValidation.CATEGORY, request);
 
-    const query = parsedParams?.category
+    const query = parsedRequest.category
       ? Car.query()
-          .where(parsedParams)
+          .where({
+            category: parsedRequest.category,
+          })
           .throwIfNotFound({ message: "Car data not found" })
       : Car.query().throwIfNotFound({ message: "Car data not found" });
-    const cacheKey = parsedParams
-      ? `${parsedParams.category}-${Car.tableName}-${queryParams.size}-${queryParams.page}`
-      : `all-${Car.tableName}-${queryParams.size}-${queryParams.page}`;
+    const cacheKey = parsedRequest.category
+      ? `${parsedRequest.category}-${Car.tableName}-${parsedRequest.size}-${parsedRequest.page}`
+      : `all-${Car.tableName}-${parsedRequest.size}-${parsedRequest.page}`;
 
+    const { category, ...queryParams } = parsedRequest;
     const cars = await CarRepository.get(query, queryParams, cacheKey);
-    const carsCount = parsedParams?.category
-      ? await Car.query().where(parsedParams).resultSize()
-      : await Car.query().resultSize();
-    const total_page = Math.ceil(carsCount / queryParams.size);
+    const carsCount = await CarRepository.count(query);
+    const total_page = Math.ceil(carsCount / queryParams.size!);
     return {
       data: cars,
       page: {
@@ -52,7 +56,7 @@ export default class CarService {
   ) {
     if (user.role === "customer") {
       throw new ResponseError(
-        "The current user do not have the authorization of accesing this route",
+        "The current user do not have the authorization of accessing this route",
         403
       );
     }
@@ -82,17 +86,36 @@ export default class CarService {
     return await CarRepository.create(carData);
   }
 
-  static async getById(request: CarIdParams) {
+  static async getById(request: CarIdParams, user?: Users) {
+    if (user && user.role === "customer") {
+      throw new ResponseError(
+        "The current user do not have the authorization of accessing this route",
+        403
+      );
+    }
+
     const query = Car.query()
       .whereRaw("id::text = ?", [request.id])
       .throwIfNotFound({
         message: "Car with given ID cannot be found",
       });
     const cacheKey = `${request.id}-${Car.tableName}`;
-    return await CarRepository.get(query, undefined, cacheKey);
+    const car = await CarRepository.get(query, undefined, cacheKey);
+    const {
+      created_by,
+      created_at,
+      updated_by,
+      updated_at,
+      deleted_at,
+      deleted_by,
+      ...filteredFieldCar
+    } = car[0];
+    const data: Partial<Cars> =
+      user && user.role !== "customer" ? car[0] : filteredFieldCar;
+    return data;
   }
 
-  static async search(request: CarQuery) {
+  static async search(request: CarQuery & Paging) {
     const parsedRequest = Validation.validate(CarValidation.SEARCH, request);
     const { start_date, finish_date } = parsedRequest;
 
@@ -117,14 +140,26 @@ export default class CarService {
       : query;
 
     const { sort, page, size } = parsedRequest;
-    const carsCount = await query.resultSize();
+    const carsCount = await CarRepository.count(query);
     const cars = await CarRepository.get(
       query.throwIfNotFound({ message: "Car data not found" }),
       { sort, page, size }
     );
     const total_page = Math.ceil(carsCount / parsedRequest.size!);
+    const data = cars.map((car) => {
+      const {
+        created_at,
+        created_by,
+        updated_at,
+        updated_by,
+        deleted_at,
+        deleted_by,
+        ...rest
+      } = car;
+      return rest;
+    });
     return {
-      data: cars,
+      data,
       page: {
         current_page: parsedRequest.page!,
         total_page,

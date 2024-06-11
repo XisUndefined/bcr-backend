@@ -17,7 +17,10 @@ export default class CarController {
       res: Response,
       next: NextFunction
     ) => {
-      const response = await CarService.get(req.user!, req.query);
+      const request = { ...req.query };
+      request.page = req.query.page ? Number(req.query.page) : 1;
+      request.size = req.query.size ? Number(req.query.size) : 10;
+      const response = await CarService.get(req.user!, request);
       res.status(200).json({
         status: "success",
         ...response,
@@ -47,25 +50,33 @@ export default class CarController {
   );
 
   static getById = asyncErrorHandler(
-    async (req: Request<CarIdParams>, res: Response, next: NextFunction) => {
-      if (["small", "medium", "large"].includes(req.params.id)) {
+    async (
+      req: UserRequest<CarIdParams>,
+      res: Response,
+      next: NextFunction
+    ) => {
+      if (
+        req.baseUrl.split("/")[3].startsWith("admin") &&
+        ["small", "medium", "large"].includes(req.params.id)
+      ) {
         return next();
       }
-      const response = await CarService.getById(req.params);
+
+      const response = await CarService.getById(req.params, req.user);
       res.status(200).json({
         status: "success",
-        data: response[0],
+        data: response,
       });
     }
   );
 
   static search = asyncErrorHandler(
     async (
-      req: Request<{}, {}, {}, CarQuery>,
+      req: Request<{}, {}, {}, CarQuery & Paging>,
       res: Response,
       next: NextFunction
     ) => {
-      const request: CarQuery = req.query;
+      const request = req.query;
       request.driver_service =
         req.query.driver_service.toString().toLocaleLowerCase() === "true";
       request.page = req.query.page ? Number(req.query.page) : 1;
@@ -87,7 +98,11 @@ export default class CarController {
       res: Response,
       next: NextFunction
     ) => {
-      const response = await CarService.get(req.user!, req.query, req.params);
+      const request = { ...req.query, ...req.params };
+      request.page = req.query.page ? Number(req.query.page) : 1;
+      request.size = req.query.size ? Number(req.query.size) : 10;
+
+      const response = await CarService.get(req.user!, request);
       res.status(200).json({
         status: "success",
         ...response,

@@ -1,5 +1,3 @@
-import { ParamsDictionary } from "express-serve-static-core";
-
 export enum Category {
   SMALL = "small",
   MEDIUM = "medium",
@@ -22,8 +20,8 @@ export interface CarIdParams {
   id: string;
 }
 
-export interface CarCategoryParams extends ParamsDictionary {
-  category: Category;
+export interface CarCategoryParams {
+  category?: Category;
 }
 
 export interface CarQuery {
@@ -31,7 +29,4 @@ export interface CarQuery {
   finish_date: string;
   driver_service: boolean;
   capacity?: number;
-  sort?: string;
-  page?: number;
-  size?: number;
 }
