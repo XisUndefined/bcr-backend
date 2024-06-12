@@ -1,5 +1,7 @@
 // IMPORT PACKAGE
 import express, { Express } from "express";
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "./docs/openapi.json" assert { type: "json" };
 
 // IMPORT ROUTES
 import carRouter from "./routes/carRouter.js";
@@ -24,6 +26,7 @@ app.use("/api/v1/cars", carRouter);
 app.use("/api/v1/order", orderRouter);
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/admin", adminRouter);
+app.use("/api/v1/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.all("*", (req, res, next) => {
   const err = new ResponseError(
