@@ -18,20 +18,23 @@ export const sendResponseToken = (
   );
 
   const data: {
-    firstname: string;
+    firstname?: string;
     lastname?: string;
     email: string;
     token?: string;
-  } = {
-    firstname: newUser.firstname!,
-    email: newUser.email!,
-    token,
-  };
+  } =
+    statusCode === 201
+      ? {
+          firstname: newUser.firstname!,
+          email: newUser.email!,
+          token,
+        }
+      : {
+          email: newUser.email!,
+          token,
+        };
 
-  if (newUser.role === "customer" || newUser.role === "superadmin")
-    data.token = token;
-
-  if (newUser.lastname) data.lastname = newUser.lastname;
+  if (newUser.lastname && statusCode === 201) data.lastname = newUser.lastname;
 
   res.status(statusCode).json({
     status:

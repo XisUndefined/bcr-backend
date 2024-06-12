@@ -35,11 +35,7 @@ export default class OrderRepository {
         )
           .sort()
           .paginate()
-      : new ApiFeatures(
-          query.throwIfNotFound({
-            message: "Order with given ID cannot be found",
-          })
-        );
+      : new ApiFeatures(query);
     const order = await features.query;
 
     if (cacheKey) {

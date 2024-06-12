@@ -17,7 +17,7 @@ router
   .route("/cars/:id")
   .get(authMiddleware, CarController.getById)
   .patch(authMiddleware, uploadMiddleware.single("car"), CarController.update)
-  .delete(authMiddleware, uploadMiddleware.single("car"), CarController.delete);
+  .delete(authMiddleware, CarController.delete);
 
 router
   .route("/cars/:category")

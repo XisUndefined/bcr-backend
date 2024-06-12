@@ -106,7 +106,6 @@ export default class CarService {
       created_at,
       updated_by,
       updated_at,
-      deleted_at,
       deleted_by,
       ...filteredFieldCar
     } = car[0];
@@ -152,7 +151,6 @@ export default class CarService {
         created_by,
         updated_at,
         updated_by,
-        deleted_at,
         deleted_by,
         ...rest
       } = car;
@@ -188,7 +186,7 @@ export default class CarService {
 
     let carData: Partial<Cars> = {
       id: selectedCar[0].id,
-      updated_by: user.id,
+      updated_by: user.email,
       updated_at: new Date(),
       ...carRequest.body,
     };
@@ -240,23 +238,23 @@ export default class CarService {
         .throwIfNotFound({ message: "Car with given ID cannot be found" })
     );
 
+    if (selectedCar[0].deleted_by) {
+      throw new ResponseError(
+        "Car with given ID has already been deleted",
+        410
+      );
+    }
+
     if (selectedCar[0].image) {
       await cloudinary.uploader.destroy(
         `binar-car-rental/upload/data/car/${selectedCar[0].plate}`
       );
     }
 
-    if (selectedCar[0].deleted_by) {
-      throw new ResponseError(
-        "Car with given ID has been already deleted",
-        400
-      );
-    }
-
     const carData: Partial<Cars> = {
       id: selectedCar[0].id,
       image: null,
-      deleted_by: user.id,
+      deleted_by: user.email,
       deleted_at: new Date(),
     };
 
