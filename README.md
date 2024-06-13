@@ -35,6 +35,10 @@
 - GET `api/v1/user/profile` Get current user profile.
 - PATCH `api/v1/user/profile` Update current user profile.
 
+### Docs
+
+- GET `api/v1/docs` Swagger Open API documentation
+
 ## Entity Relationship Diagram (ERD)
 
 ![binar-car-rental (1)](https://github.com/XisUndefined/24001143-synrgy7-muh-bcr-ch5/assets/91261170/a2c3f01f-d1df-48e4-8007-48b3d69d2466)
