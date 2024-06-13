@@ -4,11 +4,11 @@
   "description": "Challenge Chapter 5 - SYNRGY Academy Batch 7",
   "main": "server.js",
   "scripts": {
-    "make": "knex migrate:make index --knexfile=./src/db/knexfile.ts -x ts",
-    "latest": "knex migrate:latest --knexfile=./src/db/knexfile.ts --env development",
-    "rollback": "knex migrate:rollback --knexfile=./src/db/knexfile.ts --env development",
-    "status": "knex migrate:status --knexfile=./src/db/knexfile.ts --env development",
-    "seed": "knex seed:run --knexfile=./src/db/knexfile.ts --env development",
+    "migrate-make": "knex migrate:make index --knexfile=./src/db/knexfile.ts -x ts",
+    "latest": "tsc && knex migrate:latest --knexfile=./dist/db/knexfile --env development",
+    "rollback": "tsc && knex migrate:rollback --knexfile=./dist/db/knexfile --env development",
+    "status": "tsc && knex migrate:status --knexfile=./dist/db/knexfile --env development",
+    "seed": "tsc && knex seed:run --knexfile=./dist/db/knexfile --env development",
     "start-dev": "nodemon --exec \"ts-node-esm -r dotenv/config ./src/server.ts dotenv_config_path=./.env.development\"",
     "start-prod": "nodemon --exec \"tsc && node -r dotenv/config ./dist/server.js dotenv_config_path=./.env.production\""
   },
