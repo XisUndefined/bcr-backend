@@ -5,11 +5,12 @@
   "main": "server.js",
   "scripts": {
     "make": "knex migrate:make index --knexfile=./src/db/knexfile.ts -x ts",
-    "latest": "knex migrate:latest --knexfile=./src/db/knexfile.ts",
-    "rollback": "knex migrate:rollback --knexfile=./src/db/knexfile.ts",
-    "status": "knex migrate:status --knexfile=./src/db/knexfile.ts",
-    "seed": "knex seed:run --knexfile=./src/db/knexfile.ts",
-    "dev": "nodemon"
+    "latest": "knex migrate:latest --knexfile=./src/db/knexfile.ts --env development",
+    "rollback": "knex migrate:rollback --knexfile=./src/db/knexfile.ts --env development",
+    "status": "knex migrate:status --knexfile=./src/db/knexfile.ts --env development",
+    "seed": "knex seed:run --knexfile=./src/db/knexfile.ts --env development",
+    "start-dev": "nodemon --exec \"ts-node-esm -r dotenv/config ./src/server.ts dotenv_config_path=./.env.development\"",
+    "start-prod": "nodemon --exec \"tsc && node -r dotenv/config ./dist/server.js dotenv_config_path=./.env.production\""
   },
   "type": "module",
   "author": "Muhlis Ahmad Abdillah",

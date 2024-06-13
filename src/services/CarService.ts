@@ -73,7 +73,7 @@ export default class CarService {
       );
     }
 
-    let carData: Partial<Cars> = { created_by: user.id, ...carRequest.body };
+    let carData: Partial<Cars> = { created_by: user.email, ...carRequest.body };
     if (carRequest.file) {
       const fileBase64 = carRequest.file.buffer.toString("base64");
       const file = `data:${carRequest.file.mimetype};base64,${fileBase64}`;

@@ -20,9 +20,9 @@ export async function up(knex: Knex): Promise<void> {
       // create cars table
       .createTable("cars", (table: Knex.TableBuilder) => {
         table.uuid("id").primary().defaultTo(knex.fn.uuid());
-        table.uuid("created_by").notNullable();
-        table.uuid("updated_by");
-        table.uuid("deleted_by");
+        table.string("created_by").notNullable();
+        table.string("updated_by");
+        table.string("deleted_by");
         table.string("plate").notNullable().unique();
         table.string("transmission").notNullable();
         table.string("name").notNullable();

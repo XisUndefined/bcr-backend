@@ -7,14 +7,12 @@ export async function seed(knex: Knex): Promise<void> {
   // Inserts seed entries
   await knex("cars").insert([
     {
-      created_by: "2395ef91-8684-4c4e-8d55-8ccf01233b42",
+      created_by: "muhllis.ahmad@gmail.com",
       plate: "B 7869 GUH",
       transmission: "Automatic",
       name: "Ford F150",
       year: 2022,
       driver_service: false,
-      image:
-        "https://res.cloudinary.com/de3zdoakr/image/upload/v1716262407/binar-car-rental/upload/data/car/B%207869%20GUH.jpg",
       rent_per_day: 250000,
       capacity: 6,
       category: "large",
@@ -24,14 +22,12 @@ export async function seed(knex: Knex): Promise<void> {
       updated_at: new Date(),
     },
     {
-      created_by: "2395ef91-8684-4c4e-8d55-8ccf01233b42",
+      created_by: "muhllis.ahmad@gmail.com",
       plate: "VM 651 H",
       transmission: "Manual",
       name: "Suzuki Esteem",
       year: 2022,
       driver_service: true,
-      image:
-        "https://res.cloudinary.com/de3zdoakr/image/upload/v1716262543/binar-car-rental/upload/data/car/VM%20651%20H.png",
       rent_per_day: 200000,
       capacity: 4,
       category: "small",

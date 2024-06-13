@@ -704,6 +704,10 @@
                   "capacity": {
                     "type": "number"
                   },
+                  "rent_per_day": {
+                    "type": "number",
+                    "example": 250000
+                  },
                   "category": {
                     "type": "string",
                     "enum": ["small", "medium", "large"]
@@ -724,7 +728,8 @@
                   "driver_service",
                   "capacity",
                   "category",
-                  "description"
+                  "description",
+                  "rent_per_day"
                 ]
               }
             }
@@ -761,6 +766,10 @@
                         "year": {
                           "type": "number",
                           "example": 2001
+                        },
+                        "rent_per_day": {
+                          "type": "number",
+                          "example": 250000
                         },
                         "driver_service": {
                           "type": "boolean",
@@ -1014,6 +1023,10 @@
                   "driver_service": {
                     "type": "boolean"
                   },
+                  "rent_per_day": {
+                    "type": "number",
+                    "example": 250000
+                  },
                   "capacity": {
                     "type": "number"
                   },
@@ -1037,7 +1050,8 @@
                   "driver_service",
                   "capacity",
                   "category",
-                  "description"
+                  "description",
+                  "rent_per_day"
                 ]
               }
             }
@@ -2530,6 +2544,18 @@
                     }
                   }
                 }
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "avatar": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": ["avatar"]
               }
             }
           }
