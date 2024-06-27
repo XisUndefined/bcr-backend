@@ -1,7 +1,5 @@
-import dotenv from "dotenv";
+import "dotenv/config";
 import { ConfigOptions, v2 as cloudinary } from "cloudinary";
-
-dotenv.config({ path: "../../.env" });
 
 const config: ConfigOptions = {
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

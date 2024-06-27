@@ -1,12 +1,5 @@
 import type { Knex } from "knex";
-import dotenv from "dotenv";
-
-dotenv.config({
-  path:
-    process.env.NODE_ENV!.trim() === "development"
-      ? "../../.env.development"
-      : "../../.env.production",
-});
+import "dotenv/config";
 
 // Update with your config settings.
 
