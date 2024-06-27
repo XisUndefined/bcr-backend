@@ -22,6 +22,706 @@
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }
+    },
+    "parameters": {
+      "carId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Car Id for return",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "orderId": {
+        "name": "orderId",
+        "in": "path",
+        "required": true,
+        "description": "Order ID for return",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "carCategory": {
+        "name": "category",
+        "in": "path",
+        "required": true,
+        "description": "Car category",
+        "schema": {
+          "type": "string",
+          "enum": ["small", "medium", "large"]
+        }
+      },
+      "sortQuery": {
+        "name": "sort",
+        "in": "query",
+        "required": false,
+        "description": "Sort data according to a certain field",
+        "schema": {
+          "type": "string",
+          "default": "-updated_at"
+        },
+        "examples": {
+          "updated descending": {
+            "description": "Sort data by the updated date descending",
+            "value": "-updated_at"
+          },
+          "updated ascending": {
+            "description": "Sort data by the updated date ascending",
+            "value": "updated_at"
+          }
+        }
+      },
+      "pageQuery": {
+        "name": "page",
+        "in": "query",
+        "required": false,
+        "description": "Go to specific page",
+        "schema": {
+          "type": "number",
+          "default": 1
+        }
+      },
+      "sizeQuery": {
+        "name": "size",
+        "in": "query",
+        "required": false,
+        "description": "Limit the amount of data being return",
+        "schema": {
+          "type": "number",
+          "default": 10
+        }
+      },
+      "searchQuery": {
+        "name": "q",
+        "in": "query",
+        "required": false,
+        "description": "Keyword to search data",
+        "schema": {
+          "type": "string"
+        },
+        "examples": {
+          "car name keyword": {
+            "description": "Keyword for search car data",
+            "value": "Mercedes Benz"
+          },
+          "email keyword": {
+            "description": "Keyword for search user email order",
+            "value": "john.doe@domain.com"
+          }
+        }
+      },
+      "startDateQuery": {
+        "name": "start_date",
+        "in": "query",
+        "required": true,
+        "description": "Start date to rent a car",
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "finishDateQuery": {
+        "name": "finish_date",
+        "in": "query",
+        "required": true,
+        "description": "Finish date to rent a car",
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "driverServiceQuery": {
+        "name": "driver_service",
+        "in": "query",
+        "required": true,
+        "description": "Driver service",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "capacityQuery": {
+        "name": "capacity",
+        "in": "query",
+        "required": false,
+        "description": "Minimum car capacity",
+        "schema": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10
+        }
+      }
+    },
+    "schemas": {
+      "CarResponseCustomer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "manufacture": {
+            "type": "string",
+            "example": "Toyota"
+          },
+          "model": {
+            "type": "string",
+            "example": "Supra"
+          },
+          "transmission": {
+            "type": "string",
+            "example": "Manual"
+          },
+          "plate": {
+            "type": "string",
+            "pattern": "^(A|B|D|F|T|Z|E|H|G|K|R|AB|AD|AE|AG|S|K|W|L|M|N|P|BL|BB|BK|BA|BM|BH|BG|BN|BE|BD|B|DA|KT|DB|DL|DM|DN|DT|DD|DC|DS|DE|DG|DH|EB|ED|EA|PA|PB)\\s([0-9]{1,4})\\s([A-Z]{1,3})$"
+          },
+          "year": {
+            "type": "number",
+            "example": 2002
+          },
+          "driver_service": {
+            "type": "boolean"
+          },
+          "rent_per_day": {
+            "type": "number",
+            "example": 250000
+          },
+          "image": {
+            "type": "string",
+            "example": "https://res.cloudinary.com/de3zdoakr/image/upload/v1717698129/binar-car-rental/upload/data/car/G%20299%20T.png",
+            "nullable": true
+          },
+          "capacity": {
+            "type": "number",
+            "example": 4
+          },
+          "type": {
+            "type": "string",
+            "example": "sedan"
+          },
+          "options": {
+            "type": "string",
+            "nullable": true
+          },
+          "specs": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "example": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+          },
+          "deleted_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CarResponseAdmin": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "created_by": {
+            "type": "string",
+            "example": "jonathanjoestar@gmail.com"
+          },
+          "updated_by": {
+            "type": "string",
+            "nullable": true
+          },
+          "deleted_by": {
+            "type": "string",
+            "nullable": true
+          },
+          "manufacture": {
+            "type": "string",
+            "example": "Toyota"
+          },
+          "model": {
+            "type": "string",
+            "example": "Supra"
+          },
+          "transmission": {
+            "type": "string",
+            "example": "Manual"
+          },
+          "year": {
+            "type": "number",
+            "example": 2002
+          },
+          "driver_service": {
+            "type": "boolean"
+          },
+          "rent_per_day": {
+            "type": "number",
+            "example": 250000
+          },
+          "image": {
+            "type": "string",
+            "example": "https://res.cloudinary.com/de3zdoakr/image/upload/v1717698129/binar-car-rental/upload/data/car/G%20299%20T.png",
+            "nullable": true
+          },
+          "capacity": {
+            "type": "number",
+            "example": 4
+          },
+          "type": {
+            "type": "string",
+            "example": "sedan"
+          },
+          "options": {
+            "type": "string",
+            "nullable": true
+          },
+          "specs": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "example": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+          },
+          "deleted_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateCarRequest": {
+        "type": "object",
+        "properties": {
+          "manufacture": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "transmission": {
+            "type": "string"
+          },
+          "plate": {
+            "type": "string"
+          },
+          "year": {
+            "type": "number"
+          },
+          "driver_service": {
+            "type": "boolean"
+          },
+          "rent_per_day": {
+            "type": "number",
+            "example": 250000
+          },
+          "capacity": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string",
+            "example": "sedan"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["small", "medium", "large"]
+          },
+          "options": {
+            "type": "string"
+          },
+          "specs": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "car": {
+            "type": "string",
+            "format": "binary"
+          }
+        },
+        "required": [
+          "manufacture",
+          "model",
+          "transmission",
+          "plate",
+          "year",
+          "driver_service",
+          "rent_per_day",
+          "capacity",
+          "type",
+          "category",
+          "description"
+        ]
+      },
+      "UpdateCarRequest": {
+        "type": "object",
+        "properties": {
+          "manufacture": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "transmission": {
+            "type": "string"
+          },
+          "plate": {
+            "type": "string"
+          },
+          "year": {
+            "type": "number"
+          },
+          "driver_service": {
+            "type": "boolean"
+          },
+          "rent_per_day": {
+            "type": "number",
+            "example": 250000
+          },
+          "capacity": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string",
+            "example": "sedan"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["small", "medium", "large"]
+          },
+          "options": {
+            "type": "string"
+          },
+          "specs": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "car": {
+            "type": "string",
+            "format": "binary"
+          }
+        }
+      },
+      "CreateOrderRequest": {
+        "type": "object",
+        "properties": {
+          "car_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "bank": {
+            "type": "string",
+            "enum": ["mandiri", "bni", "bca"]
+          },
+          "start_rent": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finish_rent": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": ["car_id", "bank", "start_rent", "finish_rent"]
+      },
+      "UpdateOrderStatusRequest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["approved", "rejected", "completed"]
+          }
+        },
+        "required": ["status"]
+      },
+      "UpdateOrderSlipRequest": {
+        "type": "object",
+        "properties": {
+          "slip": {
+            "type": "string",
+            "format": "binary"
+          }
+        },
+        "required": ["slip"]
+      },
+      "OrderResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "car": {
+            "type": "string",
+            "example": "Toyota Supra"
+          },
+          "bank": {
+            "type": "string",
+            "enum": ["mandiri", "bni", "bca"]
+          },
+          "transfer_image": {
+            "type": "string",
+            "example": "https://res.cloudinary.com/de3zdoakr/image/upload/v1717698129/binar-car-rental/upload/data/slip/3fa85f64-5717-4562-b3fc-2c963f66afa6.png",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "on-process",
+              "approved",
+              "rejected",
+              "completed"
+            ]
+          },
+          "price": {
+            "type": "number",
+            "example": 250000
+          },
+          "start_rent": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finish_rent": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UpdateUserProfileRequest": {
+        "type": "object",
+        "properties": {
+          "firstname": {
+            "type": "string",
+            "example": "Jean"
+          },
+          "lastname": {
+            "type": "string",
+            "example": "Polnareff"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password_input": {
+            "type": "object",
+            "properties": {
+              "oldPassword": {
+                "type": "string",
+                "minLength": 8
+              },
+              "newPassword": {
+                "type": "string",
+                "minLength": 8,
+                "allOf": [
+                  {
+                    "pattern": ".*[0-9].*"
+                  },
+                  {
+                    "pattern": ".*[A-Z].*"
+                  },
+                  {
+                    "pattern": ".*[a-z].*"
+                  },
+                  {
+                    "pattern": ".*[!@#$%^&*(),.?\":{}|<>].*"
+                  }
+                ],
+                "example": "Silver_chariot77"
+              },
+              "confirmPassword": {
+                "type": "string",
+                "minLength": 8,
+                "allOf": [
+                  {
+                    "pattern": ".*[0-9].*"
+                  },
+                  {
+                    "pattern": ".*[A-Z].*"
+                  },
+                  {
+                    "pattern": ".*[a-z].*"
+                  },
+                  {
+                    "pattern": ".*[!@#$%^&*(),.?\":{}|<>].*"
+                  }
+                ],
+                "example": "Silver_chariot77"
+              }
+            }
+          }
+        }
+      },
+      "UpdateUserAvatarRequest": {
+        "type": "object",
+        "properties": {
+          "avatar": {
+            "type": "string",
+            "format": "binary"
+          }
+        },
+        "required": ["avatar"]
+      },
+      "UserProfileResponse": {
+        "type": "object",
+        "properties": {
+          "firstname": {
+            "type": "string",
+            "maxLength": 50,
+            "example": "Jonathan"
+          },
+          "lastname": {
+            "type": "string",
+            "maxLength": 50,
+            "example": "Joestar",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "avatar": {
+            "type": "string",
+            "example": "https://res.cloudinary.com/de3zdoakr/image/upload/v1717698129/binar-car-rental/upload/data/avatar/9a0736cf-6478-49d3-a7b3-b347afe33341.png"
+          }
+        },
+        "required": ["firstname", "email", "password", "confirmPassword"]
+      },
+      "SignupRequest": {
+        "type": "object",
+        "properties": {
+          "firstname": {
+            "type": "string",
+            "maxLength": 50,
+            "example": "Jonathan"
+          },
+          "lastname": {
+            "type": "string",
+            "maxLength": 50,
+            "example": "Joestar"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "allOf": [
+              {
+                "pattern": ".*[0-9].*"
+              },
+              {
+                "pattern": ".*[A-Z].*"
+              },
+              {
+                "pattern": ".*[a-z].*"
+              },
+              {
+                "pattern": ".*[!@#$%^&*(),.?\":{}|<>].*"
+              }
+            ],
+            "example": "Phantom_blood77"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "minLength": 8,
+            "allOf": [
+              {
+                "pattern": ".*[0-9].*"
+              },
+              {
+                "pattern": ".*[A-Z].*"
+              },
+              {
+                "pattern": ".*[a-z].*"
+              },
+              {
+                "pattern": ".*[!@#$%^&*(),.?\":{}|<>].*"
+              }
+            ],
+            "example": "Phantom_blood77"
+          }
+        },
+        "required": ["firstname", "email", "password", "confirmPassword"]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "allOf": [
+              {
+                "pattern": ".*[0-9].*"
+              },
+              {
+                "pattern": ".*[A-Z].*"
+              },
+              {
+                "pattern": ".*[a-z].*"
+              },
+              {
+                "pattern": ".*[!@#$%^&*(),.?\":{}|<>].*"
+              }
+            ],
+            "example": "Phantom_blood77"
+          }
+        },
+        "required": ["email", "password"]
+      },
+      "Paging": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "default": 1
+          },
+          "size": {
+            "type": "number",
+            "default": 10
+          },
+          "total_page": {
+            "type": "number",
+            "example": 6
+          }
+        }
+      }
     }
   },
   "paths": {
@@ -34,67 +734,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "firstname": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "example": "Jonathan"
-                  },
-                  "lastname": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "example": "Joestar"
-                  },
-                  "email": {
-                    "type": "string",
-                    "format": "email"
-                  },
-                  "password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "allOf": [
-                      {
-                        "pattern": ".*[0-9].*"
-                      },
-                      {
-                        "pattern": ".*[A-Z].*"
-                      },
-                      {
-                        "pattern": ".*[a-z].*"
-                      },
-                      {
-                        "pattern": ".*[!@#$%^&*(),.?\":{}|<>].*"
-                      }
-                    ],
-                    "example": "Phantom_blood77"
-                  },
-                  "confirmPassword": {
-                    "type": "string",
-                    "minLength": 8,
-                    "allOf": [
-                      {
-                        "pattern": ".*[0-9].*"
-                      },
-                      {
-                        "pattern": ".*[A-Z].*"
-                      },
-                      {
-                        "pattern": ".*[a-z].*"
-                      },
-                      {
-                        "pattern": ".*[!@#$%^&*(),.?\":{}|<>].*"
-                      }
-                    ],
-                    "example": "Phantom_blood77"
-                  }
-                },
-                "required": [
-                  "firstname",
-                  "email",
-                  "password",
-                  "confirmPassword"
-                ]
+                "$ref": "#/components/schemas/SignupRequest"
               }
             }
           }
@@ -111,20 +751,6 @@
                     "data": {
                       "type": "object",
                       "properties": {
-                        "firstname": {
-                          "type": "string",
-                          "maxLength": 50,
-                          "example": "Jonathan"
-                        },
-                        "lastname": {
-                          "type": "string",
-                          "maxLength": 50,
-                          "example": "Joestar"
-                        },
-                        "email": {
-                          "type": "string",
-                          "format": "email"
-                        },
                         "token": {
                           "type": "string",
                           "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAyMjRkNTc4LWRkOTEtNGIyYy1hNTQ2LTJiN2Q3OTYxM2U1YSIsImlhdCI6MTcxNzU5NTIwMCwiZXhwIjoxNzE4MjAwMDAwfQ.LBXInWApZzhCkMhUY7xyBbqKJ05GMrTLuPpqzHVjxMY"
@@ -165,33 +791,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email"
-                  },
-                  "password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "allOf": [
-                      {
-                        "pattern": ".*[0-9].*"
-                      },
-                      {
-                        "pattern": ".*[A-Z].*"
-                      },
-                      {
-                        "pattern": ".*[a-z].*"
-                      },
-                      {
-                        "pattern": ".*[!@#$%^&*(),.?\":{}|<>].*"
-                      }
-                    ],
-                    "example": "Phantom_blood77"
-                  }
-                },
-                "required": ["email", "password"]
+                "$ref": "#/components/schemas/LoginRequest"
               }
             }
           }
@@ -208,10 +808,6 @@
                     "data": {
                       "type": "object",
                       "properties": {
-                        "email": {
-                          "type": "string",
-                          "format": "email"
-                        },
                         "token": {
                           "type": "string",
                           "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAyMjRkNTc4LWRkOTEtNGIyYy1hNTQ2LTJiN2Q3OTYxM2U1YSIsImlhdCI6MTcxNzU5NTIwMCwiZXhwIjoxNzE4MjAwMDAwfQ.LBXInWApZzhCkMhUY7xyBbqKJ05GMrTLuPpqzHVjxMY"
@@ -338,67 +934,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "firstname": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "example": "Jonathan"
-                  },
-                  "lastname": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "example": "Joestar"
-                  },
-                  "email": {
-                    "type": "string",
-                    "format": "email"
-                  },
-                  "password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "allOf": [
-                      {
-                        "pattern": ".*[0-9].*"
-                      },
-                      {
-                        "pattern": ".*[A-Z].*"
-                      },
-                      {
-                        "pattern": ".*[a-z].*"
-                      },
-                      {
-                        "pattern": ".*[!@#$%^&*(),.?\":{}|<>].*"
-                      }
-                    ],
-                    "example": "Phantom_blood77"
-                  },
-                  "confirmPassword": {
-                    "type": "string",
-                    "minLength": 8,
-                    "allOf": [
-                      {
-                        "pattern": ".*[0-9].*"
-                      },
-                      {
-                        "pattern": ".*[A-Z].*"
-                      },
-                      {
-                        "pattern": ".*[a-z].*"
-                      },
-                      {
-                        "pattern": ".*[!@#$%^&*(),.?\":{}|<>].*"
-                      }
-                    ],
-                    "example": "Phantom_blood77"
-                  }
-                },
-                "required": [
-                  "firstname",
-                  "email",
-                  "password",
-                  "confirmPassword"
-                ]
+                "$ref": "#/components/schemas/SignupRequest"
               }
             }
           }
@@ -412,28 +948,9 @@
                   "type": "object",
                   "properties": {
                     "status": { "type": "string", "example": "success" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "firstname": {
-                          "type": "string",
-                          "maxLength": 50,
-                          "example": "Jonathan"
-                        },
-                        "lastname": {
-                          "type": "string",
-                          "maxLength": 50,
-                          "example": "Joestar"
-                        },
-                        "email": {
-                          "type": "string",
-                          "format": "email"
-                        },
-                        "token": {
-                          "type": "string",
-                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAyMjRkNTc4LWRkOTEtNGIyYy1hNTQ2LTJiN2Q3OTYxM2U1YSIsImlhdCI6MTcxNzU5NTIwMCwiZXhwIjoxNzE4MjAwMDAwfQ.LBXInWApZzhCkMhUY7xyBbqKJ05GMrTLuPpqzHVjxMY"
-                        }
-                      }
+                    "message": {
+                      "type": "string",
+                      "example": "Admin created successfully"
                     }
                   }
                 }
@@ -488,34 +1005,16 @@
         "summary": "Get Car List",
         "parameters": [
           {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "description": "Sort data according to a certain field",
-            "schema": {
-              "type": "string",
-              "default": "-updated_at"
-            }
+            "$ref": "#/components/parameters/sortQuery"
           },
           {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "description": "Go to specific page",
-            "schema": {
-              "type": "number",
-              "default": 1
-            }
+            "$ref": "#/components/parameters/pageQuery"
           },
           {
-            "name": "size",
-            "in": "query",
-            "required": false,
-            "description": "Limit amount of list cars data",
-            "schema": {
-              "type": "number",
-              "default": 10
-            }
+            "$ref": "#/components/parameters/sizeQuery"
+          },
+          {
+            "$ref": "#/components/parameters/searchQuery"
           }
         ],
         "responses": {
@@ -533,85 +1032,11 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string",
-                            "format": "uuid"
-                          },
-                          "created_by": {
-                            "type": "string",
-                            "format": "email"
-                          },
-                          "updated_by": {
-                            "type": "string",
-                            "format": "email",
-                            "nullable": true
-                          },
-                          "deleted_by": {
-                            "type": "string",
-                            "format": "email",
-                            "nullable": true
-                          },
-                          "plate": {
-                            "type": "string",
-                            "pattern": "^(A|B|D|F|T|Z|E|H|G|K|R|AB|AD|AE|AG|S|K|W|L|M|N|P|BL|BB|BK|BA|BM|BH|BG|BN|BE|BD|B|DA|KT|DB|DL|DM|DN|DT|DD|DC|DS|DE|DG|DH|EB|ED|EA|PA|PB)\\s([0-9]{1,4})\\s([A-Z]{1,3})$"
-                          },
-                          "transmission": {
-                            "type": "string",
-                            "example": "Automatic"
-                          },
-                          "name": {
-                            "type": "string",
-                            "example": "Toyota Supra"
-                          },
-                          "year": {
-                            "type": "number",
-                            "example": 2001
-                          },
-                          "driver_service": {
-                            "type": "boolean",
-                            "example": true
-                          },
-                          "image": {
-                            "type": "string",
-                            "example": "https://res.cloudinary.com/de3zdoakr/image/upload/v1717698129/binar-car-rental/upload/data/car/G%20299%20T.png"
-                          },
-                          "capacity": {
-                            "type": "number",
-                            "example": 4
-                          },
-                          "category": {
-                            "type": "string",
-                            "enum": ["small", "medium", "large"]
-                          },
-                          "description": {
-                            "type": "string",
-                            "example": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-                          },
-                          "created_at": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "updated_at": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "deleted_at": {
-                            "type": "string",
-                            "format": "date-time",
-                            "nullable": true
-                          }
-                        }
+                        "$ref": "#/components/schemas/CarResponseAdmin"
                       }
                     },
-                    "page": {
-                      "type": "object",
-                      "properties": {
-                        "current_page": { "type": "number", "example": 1 },
-                        "total_page": { "type": "number", "example": 3 },
-                        "size": { "type": "number", "example": 10 }
-                      }
+                    "paging": {
+                      "$ref": "#/components/schemas/Paging"
                     }
                   }
                 }
@@ -684,53 +1109,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "plate": {
-                    "type": "string"
-                  },
-                  "transmission": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "year": {
-                    "type": "number"
-                  },
-                  "driver_service": {
-                    "type": "boolean"
-                  },
-                  "capacity": {
-                    "type": "number"
-                  },
-                  "rent_per_day": {
-                    "type": "number",
-                    "example": 250000
-                  },
-                  "category": {
-                    "type": "string",
-                    "enum": ["small", "medium", "large"]
-                  },
-                  "description": {
-                    "type": "string"
-                  },
-                  "car": {
-                    "type": "string",
-                    "format": "binary"
-                  }
-                },
-                "required": [
-                  "plate",
-                  "transmission",
-                  "name",
-                  "year",
-                  "driver_service",
-                  "capacity",
-                  "category",
-                  "description",
-                  "rent_per_day"
-                ]
+                "$ref": "#/components/schemas/CreateCarRequest"
               }
             }
           }
@@ -745,53 +1124,7 @@
                   "properties": {
                     "status": { "type": "string", "example": "success" },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "uuid"
-                        },
-                        "plate": {
-                          "type": "string",
-                          "pattern": "^(A|B|D|F|T|Z|E|H|G|K|R|AB|AD|AE|AG|S|K|W|L|M|N|P|BL|BB|BK|BA|BM|BH|BG|BN|BE|BD|B|DA|KT|DB|DL|DM|DN|DT|DD|DC|DS|DE|DG|DH|EB|ED|EA|PA|PB)\\s([0-9]{1,4})\\s([A-Z]{1,3})$"
-                        },
-                        "transmission": {
-                          "type": "string",
-                          "example": "Automatic"
-                        },
-                        "name": {
-                          "type": "string",
-                          "example": "Toyota Supra"
-                        },
-                        "year": {
-                          "type": "number",
-                          "example": 2001
-                        },
-                        "rent_per_day": {
-                          "type": "number",
-                          "example": 250000
-                        },
-                        "driver_service": {
-                          "type": "boolean",
-                          "example": true
-                        },
-                        "image": {
-                          "type": "string",
-                          "example": "https://res.cloudinary.com/de3zdoakr/image/upload/v1717698129/binar-car-rental/upload/data/car/G%20299%20T.png"
-                        },
-                        "capacity": {
-                          "type": "number",
-                          "example": 4
-                        },
-                        "category": {
-                          "type": "string",
-                          "enum": ["small", "medium", "large"]
-                        },
-                        "description": {
-                          "type": "string",
-                          "example": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-                        }
-                      }
+                      "$ref": "#/components/schemas/CarResponseAdmin"
                     }
                   }
                 }
@@ -846,14 +1179,7 @@
         "summary": "Get Car By Id (Admin)",
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "Car Id for return",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
+            "$ref": "#/components/parameters/carId"
           }
         ],
         "responses": {
@@ -869,76 +1195,7 @@
                       "example": "success"
                     },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "uuid"
-                        },
-                        "created_by": {
-                          "type": "string",
-                          "format": "email"
-                        },
-                        "updated_by": {
-                          "type": "string",
-                          "format": "email",
-                          "nullable": true
-                        },
-                        "deleted_by": {
-                          "type": "string",
-                          "format": "email",
-                          "nullable": true
-                        },
-                        "plate": {
-                          "type": "string",
-                          "pattern": "^(A|B|D|F|T|Z|E|H|G|K|R|AB|AD|AE|AG|S|K|W|L|M|N|P|BL|BB|BK|BA|BM|BH|BG|BN|BE|BD|B|DA|KT|DB|DL|DM|DN|DT|DD|DC|DS|DE|DG|DH|EB|ED|EA|PA|PB)\\s([0-9]{1,4})\\s([A-Z]{1,3})$"
-                        },
-                        "transmission": {
-                          "type": "string",
-                          "example": "Automatic"
-                        },
-                        "name": {
-                          "type": "string",
-                          "example": "Toyota Supra"
-                        },
-                        "year": {
-                          "type": "number",
-                          "example": 2001
-                        },
-                        "driver_service": {
-                          "type": "boolean",
-                          "example": true
-                        },
-                        "image": {
-                          "type": "string",
-                          "example": "https://res.cloudinary.com/de3zdoakr/image/upload/v1717698129/binar-car-rental/upload/data/car/G%20299%20T.png"
-                        },
-                        "capacity": {
-                          "type": "number",
-                          "example": 4
-                        },
-                        "category": {
-                          "type": "string",
-                          "enum": ["small", "medium", "large"]
-                        },
-                        "description": {
-                          "type": "string",
-                          "example": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-                        },
-                        "created_at": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "updated_at": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "deleted_at": {
-                          "type": "string",
-                          "format": "date-time",
-                          "nullable": true
-                        }
-                      }
+                      "$ref": "#/components/schemas/CarResponseAdmin"
                     }
                   }
                 }
@@ -991,14 +1248,7 @@
         "summary": "Update Car By Id",
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "Car Id to be updated",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
+            "$ref": "#/components/parameters/carId"
           }
         ],
         "requestBody": {
@@ -1006,53 +1256,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "plate": {
-                    "type": "string"
-                  },
-                  "transmission": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "year": {
-                    "type": "number"
-                  },
-                  "driver_service": {
-                    "type": "boolean"
-                  },
-                  "rent_per_day": {
-                    "type": "number",
-                    "example": 250000
-                  },
-                  "capacity": {
-                    "type": "number"
-                  },
-                  "category": {
-                    "type": "string",
-                    "enum": ["small", "medium", "large"]
-                  },
-                  "description": {
-                    "type": "string"
-                  },
-                  "car": {
-                    "type": "string",
-                    "format": "binary"
-                  }
-                },
-                "required": [
-                  "plate",
-                  "transmission",
-                  "name",
-                  "year",
-                  "driver_service",
-                  "capacity",
-                  "category",
-                  "description",
-                  "rent_per_day"
-                ]
+                "$ref": "#/components/schemas/UpdateCarRequest"
               }
             }
           }
@@ -1287,44 +1491,19 @@
         "summary": "Get Car By Category",
         "parameters": [
           {
-            "name": "category",
-            "in": "path",
-            "required": true,
-            "description": "Car category",
-            "schema": {
-              "type": "string",
-              "enum": ["small", "medium", "large"]
-            }
+            "$ref": "#/components/parameters/carCategory"
           },
           {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "description": "Sort data according to a certain field",
-            "schema": {
-              "type": "string",
-              "default": "-updated_at"
-            }
+            "$ref": "#/components/parameters/sortQuery"
           },
           {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "description": "Go to specific page",
-            "schema": {
-              "type": "number",
-              "default": 1
-            }
+            "$ref": "#/components/parameters/pageQuery"
           },
           {
-            "name": "size",
-            "in": "query",
-            "required": false,
-            "description": "Limit amount of list cars data",
-            "schema": {
-              "type": "number",
-              "default": 10
-            }
+            "$ref": "#/components/parameters/sizeQuery"
+          },
+          {
+            "$ref": "#/components/parameters/searchQuery"
           }
         ],
         "responses": {
@@ -1342,85 +1521,11 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string",
-                            "format": "uuid"
-                          },
-                          "created_by": {
-                            "type": "string",
-                            "format": "email"
-                          },
-                          "updated_by": {
-                            "type": "string",
-                            "format": "email",
-                            "nullable": true
-                          },
-                          "deleted_by": {
-                            "type": "string",
-                            "format": "email",
-                            "nullable": true
-                          },
-                          "plate": {
-                            "type": "string",
-                            "pattern": "^(A|B|D|F|T|Z|E|H|G|K|R|AB|AD|AE|AG|S|K|W|L|M|N|P|BL|BB|BK|BA|BM|BH|BG|BN|BE|BD|B|DA|KT|DB|DL|DM|DN|DT|DD|DC|DS|DE|DG|DH|EB|ED|EA|PA|PB)\\s([0-9]{1,4})\\s([A-Z]{1,3})$"
-                          },
-                          "transmission": {
-                            "type": "string",
-                            "example": "Automatic"
-                          },
-                          "name": {
-                            "type": "string",
-                            "example": "Toyota Supra"
-                          },
-                          "year": {
-                            "type": "number",
-                            "example": 2001
-                          },
-                          "driver_service": {
-                            "type": "boolean",
-                            "example": true
-                          },
-                          "image": {
-                            "type": "string",
-                            "example": "https://res.cloudinary.com/de3zdoakr/image/upload/v1717698129/binar-car-rental/upload/data/car/G%20299%20T.png"
-                          },
-                          "capacity": {
-                            "type": "number",
-                            "example": 4
-                          },
-                          "category": {
-                            "type": "string",
-                            "enum": ["small", "medium", "large"]
-                          },
-                          "description": {
-                            "type": "string",
-                            "example": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-                          },
-                          "created_at": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "updated_at": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "deleted_at": {
-                            "type": "string",
-                            "format": "date-time",
-                            "nullable": true
-                          }
-                        }
+                        "$ref": "#/components/schemas/CarResponseAdmin"
                       }
                     },
-                    "page": {
-                      "type": "object",
-                      "properties": {
-                        "current_page": { "type": "number", "example": 1 },
-                        "total_page": { "type": "number", "example": 3 },
-                        "size": { "type": "number", "example": 10 }
-                      }
+                    "paging": {
+                      "$ref": "#/components/schemas/Paging"
                     }
                   }
                 }
@@ -1487,74 +1592,25 @@
         "summary": "Search Car For Customer",
         "parameters": [
           {
-            "name": "start_date",
-            "in": "query",
-            "required": true,
-            "description": "Start date to rent a car",
-            "schema": {
-              "type": "string",
-              "format": "date-time"
-            }
+            "$ref": "#/components/parameters/startDateQuery"
           },
           {
-            "name": "finish_date",
-            "in": "query",
-            "required": true,
-            "description": "Finish date to rent a car",
-            "schema": {
-              "type": "string",
-              "format": "date-time"
-            }
+            "$ref": "#/components/parameters/finishDateQuery"
           },
           {
-            "name": "driver_service",
-            "in": "query",
-            "required": true,
-            "description": "Driver service",
-            "schema": {
-              "type": "boolean"
-            }
+            "$ref": "#/components/parameters/driverServiceQuery"
           },
           {
-            "name": "capacity",
-            "in": "query",
-            "required": false,
-            "description": "Minimum car capacity",
-            "schema": {
-              "type": "number",
-              "minimum": 1,
-              "maximum": 10
-            }
+            "$ref": "#/components/parameters/capacityQuery"
           },
           {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "description": "Sort data according to a certain field",
-            "schema": {
-              "type": "string",
-              "default": "-updated_at"
-            }
+            "$ref": "#/components/parameters/sortQuery"
           },
           {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "description": "Go to specific page",
-            "schema": {
-              "type": "number",
-              "default": 1
-            }
+            "$ref": "#/components/parameters/pageQuery"
           },
           {
-            "name": "size",
-            "in": "query",
-            "required": false,
-            "description": "Limit amount of list cars data",
-            "schema": {
-              "type": "number",
-              "default": 10
-            }
+            "$ref": "#/components/parameters/sizeQuery"
           }
         ],
         "responses": {
@@ -1572,63 +1628,11 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string",
-                            "format": "uuid"
-                          },
-                          "plate": {
-                            "type": "string",
-                            "pattern": "^(A|B|D|F|T|Z|E|H|G|K|R|AB|AD|AE|AG|S|K|W|L|M|N|P|BL|BB|BK|BA|BM|BH|BG|BN|BE|BD|B|DA|KT|DB|DL|DM|DN|DT|DD|DC|DS|DE|DG|DH|EB|ED|EA|PA|PB)\\s([0-9]{1,4})\\s([A-Z]{1,3})$"
-                          },
-                          "transmission": {
-                            "type": "string",
-                            "example": "Automatic"
-                          },
-                          "name": {
-                            "type": "string",
-                            "example": "Toyota Supra"
-                          },
-                          "year": {
-                            "type": "number",
-                            "example": 2001
-                          },
-                          "driver_service": {
-                            "type": "boolean",
-                            "example": true
-                          },
-                          "image": {
-                            "type": "string",
-                            "example": "https://res.cloudinary.com/de3zdoakr/image/upload/v1717698129/binar-car-rental/upload/data/car/G%20299%20T.png"
-                          },
-                          "capacity": {
-                            "type": "number",
-                            "example": 4
-                          },
-                          "category": {
-                            "type": "string",
-                            "enum": ["small", "medium", "large"]
-                          },
-                          "description": {
-                            "type": "string",
-                            "example": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-                          },
-                          "deleted_at": {
-                            "type": "string",
-                            "format": "date-time",
-                            "nullable": true
-                          }
-                        }
+                        "$ref": "#/components/schemas/CarResponseCustomer"
                       }
                     },
-                    "page": {
-                      "type": "object",
-                      "properties": {
-                        "current_page": { "type": "number", "example": 1 },
-                        "total_page": { "type": "number", "example": 3 },
-                        "size": { "type": "number", "example": 10 }
-                      }
+                    "paging": {
+                      "$ref": "#/components/schemas/Paging"
                     }
                   }
                 }
@@ -1661,14 +1665,7 @@
         "summary": "Get Car By Id (Customer)",
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "Car Id for return",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
+            "$ref": "#/components/parameters/carId"
           }
         ],
         "responses": {
@@ -1684,54 +1681,7 @@
                       "example": "success"
                     },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "uuid"
-                        },
-                        "plate": {
-                          "type": "string",
-                          "pattern": "^(A|B|D|F|T|Z|E|H|G|K|R|AB|AD|AE|AG|S|K|W|L|M|N|P|BL|BB|BK|BA|BM|BH|BG|BN|BE|BD|B|DA|KT|DB|DL|DM|DN|DT|DD|DC|DS|DE|DG|DH|EB|ED|EA|PA|PB)\\s([0-9]{1,4})\\s([A-Z]{1,3})$"
-                        },
-                        "transmission": {
-                          "type": "string",
-                          "example": "Automatic"
-                        },
-                        "name": {
-                          "type": "string",
-                          "example": "Toyota Supra"
-                        },
-                        "year": {
-                          "type": "number",
-                          "example": 2001
-                        },
-                        "driver_service": {
-                          "type": "boolean",
-                          "example": true
-                        },
-                        "image": {
-                          "type": "string",
-                          "example": "https://res.cloudinary.com/de3zdoakr/image/upload/v1717698129/binar-car-rental/upload/data/car/G%20299%20T.png"
-                        },
-                        "capacity": {
-                          "type": "number",
-                          "example": 4
-                        },
-                        "category": {
-                          "type": "string",
-                          "enum": ["small", "medium", "large"]
-                        },
-                        "description": {
-                          "type": "string",
-                          "example": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-                        },
-                        "deleted_at": {
-                          "type": "string",
-                          "format": "date-time",
-                          "nullable": true
-                        }
-                      }
+                      "$ref": "#/components/schemas/CarResponseCustomer"
                     }
                   }
                 }
@@ -1769,34 +1719,16 @@
         "summary": "Get list of order",
         "parameters": [
           {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "description": "Sort data according to a certain field",
-            "schema": {
-              "type": "string",
-              "default": "-updated_at"
-            }
+            "$ref": "#/components/parameters/sortQuery"
           },
           {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "description": "Go to specific page",
-            "schema": {
-              "type": "number",
-              "default": 1
-            }
+            "$ref": "#/components/parameters/pageQuery"
           },
           {
-            "name": "size",
-            "in": "query",
-            "required": false,
-            "description": "Limit amount of list order data",
-            "schema": {
-              "type": "number",
-              "default": 10
-            }
+            "$ref": "#/components/parameters/sizeQuery"
+          },
+          {
+            "$ref": "#/components/parameters/searchQuery"
           }
         ],
         "responses": {
@@ -1812,85 +1744,10 @@
                       "example": "success"
                     },
                     "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": { "type": "string", "format": "uuid" },
-                          "user_id": {
-                            "type": "string",
-                            "format": "uuid"
-                          },
-                          "car_id": {
-                            "type": "string",
-                            "format": "uuid"
-                          },
-                          "email": {
-                            "type": "string",
-                            "format": "email"
-                          },
-                          "name": {
-                            "type": "string",
-                            "example": "Toyota Supra"
-                          },
-                          "bank": {
-                            "type": "string",
-                            "enum": ["mandiri", "bni", "bca"]
-                          },
-                          "transfer_image": {
-                            "type": "string",
-                            "example": "https://res.cloudinary.com/de3zdoakr/image/upload/v1717698129/binar-car-rental/upload/data/slip/3fa85f64-5717-4562-b3fc-2c963f66afa6.png"
-                          },
-                          "status": {
-                            "type": "string",
-                            "enum": [
-                              "pending",
-                              "on-process",
-                              "approved",
-                              "rejected",
-                              "completed"
-                            ]
-                          },
-                          "price": {
-                            "type": "number",
-                            "minimum": 1,
-                            "example": 250000
-                          },
-                          "start_rent": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "finish_rent": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "created_at": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "updated_at": {
-                            "type": "string",
-                            "format": "date-time"
-                          }
-                        }
-                      }
+                      "$ref": "#/components/schemas/OrderResponse"
                     },
-                    "page": {
-                      "type": "object",
-                      "properties": {
-                        "current_page": {
-                          "type": "number",
-                          "example": 1
-                        },
-                        "total_page": {
-                          "type": "number",
-                          "example": 3
-                        },
-                        "size": {
-                          "type": "number",
-                          "example": 10
-                        }
-                      }
+                    "paging": {
+                      "$ref": "#/components/schemas/Paging"
                     }
                   }
                 }
@@ -1948,26 +1805,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "car_id": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "bank": {
-                    "type": "string",
-                    "enum": ["mandiri", "bni", "bca"]
-                  },
-                  "start_rent": {
-                    "type": "string",
-                    "format": "date-time"
-                  },
-                  "finish_rent": {
-                    "type": "string",
-                    "format": "date-time"
-                  }
-                },
-                "required": ["car_id", "bank", "start_rent", "finish_rent"]
+                "$ref": "#/components/schemas/CreateOrderRequest"
               }
             }
           }
@@ -1982,61 +1820,7 @@
                   "properties": {
                     "status": { "type": "string", "example": "success" },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "uuid"
-                        },
-                        "user_id": {
-                          "type": "string",
-                          "format": "uuid"
-                        },
-                        "car_id": {
-                          "type": "string",
-                          "format": "uuid"
-                        },
-                        "bank": {
-                          "type": "string",
-                          "enum": ["mandiri", "bni", "bca"]
-                        },
-                        "transfer_image": {
-                          "type": "string",
-                          "example": null
-                        },
-                        "price": {
-                          "type": "number",
-                          "minimum": 1,
-                          "example": 250000
-                        },
-                        "status": {
-                          "type": "string",
-                          "enum": [
-                            "pending",
-                            "on-process",
-                            "approved",
-                            "rejected",
-                            "completed"
-                          ],
-                          "example": "pending"
-                        },
-                        "start_rent": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "finish_rent": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "created_at": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "updated_at": {
-                          "type": "string",
-                          "format": "date-time"
-                        }
-                      }
+                      "$ref": "#/components/schemas/OrderResponse"
                     }
                   }
                 }
@@ -2108,14 +1892,7 @@
         "summary": "Get Order By Id",
         "parameters": [
           {
-            "name": "orderId",
-            "in": "path",
-            "required": true,
-            "description": "Order ID for return",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
+            "$ref": "#/components/parameters/orderId"
           }
         ],
         "responses": {
@@ -2128,65 +1905,7 @@
                   "properties": {
                     "status": { "type": "string", "example": "success" },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": { "type": "string", "format": "uuid" },
-                        "user_id": {
-                          "type": "string",
-                          "format": "uuid"
-                        },
-                        "car_id": {
-                          "type": "string",
-                          "format": "uuid"
-                        },
-                        "email": {
-                          "type": "string",
-                          "format": "email"
-                        },
-                        "name": {
-                          "type": "string",
-                          "example": "Toyota Supra"
-                        },
-                        "bank": {
-                          "type": "string",
-                          "enum": ["mandiri", "bni", "bca"]
-                        },
-                        "transfer_image": {
-                          "type": "string",
-                          "example": "https://res.cloudinary.com/de3zdoakr/image/upload/v1717698129/binar-car-rental/upload/data/slip/3fa85f64-5717-4562-b3fc-2c963f66afa6.png"
-                        },
-                        "status": {
-                          "type": "string",
-                          "enum": [
-                            "pending",
-                            "on-process",
-                            "approved",
-                            "rejected",
-                            "completed"
-                          ]
-                        },
-                        "price": {
-                          "type": "number",
-                          "minimum": 1,
-                          "example": 250000
-                        },
-                        "start_rent": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "finish_rent": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "created_at": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "updated_at": {
-                          "type": "string",
-                          "format": "date-time"
-                        }
-                      }
+                      "$ref": "#/components/schemas/OrderResponse"
                     }
                   }
                 }
@@ -2239,40 +1958,19 @@
         "summary": "Update Order By Id",
         "parameters": [
           {
-            "name": "orderId",
-            "in": "path",
-            "required": true,
-            "description": "Order ID for return",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
+            "$ref": "#/components/parameters/orderId"
           }
         ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "status": {
-                    "type": "string",
-                    "enum": ["approved", "rejected", "completed"]
-                  }
-                },
-                "required": ["status"]
+                "$ref": "#/components/schemas/UpdateOrderStatusRequest"
               }
             },
             "multipart/form-data": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "slip": {
-                    "type": "string",
-                    "format": "binary"
-                  }
-                },
-                "required": ["slip"]
+                "$ref": "#/components/schemas/UpdateOrderSlipRequest"
               }
             }
           }
@@ -2287,65 +1985,7 @@
                   "properties": {
                     "status": { "type": "string", "example": "success" },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": { "type": "string", "format": "uuid" },
-                        "user_id": {
-                          "type": "string",
-                          "format": "uuid"
-                        },
-                        "car_id": {
-                          "type": "string",
-                          "format": "uuid"
-                        },
-                        "email": {
-                          "type": "string",
-                          "format": "email"
-                        },
-                        "name": {
-                          "type": "string",
-                          "example": "Toyota Supra"
-                        },
-                        "bank": {
-                          "type": "string",
-                          "enum": ["mandiri", "bni", "bca"]
-                        },
-                        "transfer_image": {
-                          "type": "string",
-                          "example": "https://res.cloudinary.com/de3zdoakr/image/upload/v1717698129/binar-car-rental/upload/data/slip/3fa85f64-5717-4562-b3fc-2c963f66afa6.png"
-                        },
-                        "status": {
-                          "type": "string",
-                          "enum": [
-                            "pending",
-                            "on-process",
-                            "approved",
-                            "rejected",
-                            "completed"
-                          ]
-                        },
-                        "price": {
-                          "type": "number",
-                          "minimum": 1,
-                          "example": 250000
-                        },
-                        "start_rent": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "finish_rent": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "created_at": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "updated_at": {
-                          "type": "string",
-                          "format": "date-time"
-                        }
-                      }
+                      "$ref": "#/components/schemas/OrderResponse"
                     }
                   }
                 }
@@ -2404,32 +2044,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": { "type": "string", "example": "success" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "firstname": {
-                          "type": "string",
-                          "example": "Jonathan"
-                        },
-                        "lastname": {
-                          "type": "string",
-                          "example": "Joestar",
-                          "nullable": true
-                        },
-                        "email": {
-                          "type": "string",
-                          "format": "email"
-                        },
-                        "avatar": {
-                          "type": "string",
-                          "example": "https://ui-avatars.com/api/?name=Jonathan+Joestar"
-                        }
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/UserProfileResponse"
                 }
               }
             }
@@ -2482,80 +2097,12 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "firstname": {
-                    "type": "string",
-                    "example": "Jean"
-                  },
-                  "lastname": {
-                    "type": "string",
-                    "example": "Polnareff"
-                  },
-                  "email": {
-                    "type": "string",
-                    "format": "email"
-                  },
-                  "password_input": {
-                    "type": "object",
-                    "properties": {
-                      "oldPassword": {
-                        "type": "string",
-                        "minLength": 8
-                      },
-                      "newPassword": {
-                        "type": "string",
-                        "minLength": 8,
-                        "allOf": [
-                          {
-                            "pattern": ".*[0-9].*"
-                          },
-                          {
-                            "pattern": ".*[A-Z].*"
-                          },
-                          {
-                            "pattern": ".*[a-z].*"
-                          },
-                          {
-                            "pattern": ".*[!@#$%^&*(),.?\":{}|<>].*"
-                          }
-                        ],
-                        "example": "Silver_chariot77"
-                      },
-                      "confirmPassword": {
-                        "type": "string",
-                        "minLength": 8,
-                        "allOf": [
-                          {
-                            "pattern": ".*[0-9].*"
-                          },
-                          {
-                            "pattern": ".*[A-Z].*"
-                          },
-                          {
-                            "pattern": ".*[a-z].*"
-                          },
-                          {
-                            "pattern": ".*[!@#$%^&*(),.?\":{}|<>].*"
-                          }
-                        ],
-                        "example": "Silver_chariot77"
-                      }
-                    }
-                  }
-                }
+                "$ref": "#/components/schemas/UpdateUserProfileRequest"
               }
             },
             "multipart/form-data": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "avatar": {
-                    "type": "string",
-                    "format": "binary"
-                  }
-                },
-                "required": ["avatar"]
+                "$ref": "#/components/schemas/UpdateUserAvatarRequest"
               }
             }
           }
@@ -2570,26 +2117,7 @@
                   "properties": {
                     "status": { "type": "string", "example": "success" },
                     "data": {
-                      "type": "object",
-                      "properties": {
-                        "firstname": {
-                          "type": "string",
-                          "example": "Jonathan"
-                        },
-                        "lastname": {
-                          "type": "string",
-                          "example": "Joestar",
-                          "nullable": true
-                        },
-                        "email": {
-                          "type": "string",
-                          "format": "email"
-                        },
-                        "avatar": {
-                          "type": "string",
-                          "example": "https://res.cloudinary.com/de3zdoakr/image/upload/v1717698129/binar-car-rental/upload/data/avatar/9a0736cf-6478-49d3-a7b3-b347afe33341.png"
-                        }
-                      }
+                      "$ref": "#/components/schemas/UserProfileResponse"
                     }
                   }
                 }

@@ -1,23 +1,21 @@
 import { Request } from "express";
 import { Users } from "../models/User.model.js";
+import { Params, Query } from "./request.js";
+import { BaseResponse } from "./response.js";
 
-interface Params {
-  [key: string]: string;
-}
-
-interface Query {
-  [key: string]: undefined | string | string[] | Query | Query[];
-}
-
-export interface CreateUserBody {
+interface BaseUser {
   firstname: string;
   lastname?: string;
   email: string;
+}
+
+export interface CreateUserReqBody extends BaseUser {
+  avatar?: string;
   password: string;
   confirmPassword: string;
 }
 
-export interface LoginUserBody {
+export interface LoginUserReqBody {
   email: string;
   password: string;
 }
@@ -28,7 +26,7 @@ interface PasswordInput {
   confirmPassword: string;
 }
 
-export interface UpdateUserBody {
+export interface UpdateUserReqBody {
   firstname?: string;
   lastname?: string;
   email?: string;
@@ -38,4 +36,20 @@ export interface UpdateUserBody {
 export interface UserRequest<P = Params, Rs = any, Rq = any, Q = Query>
   extends Request<P, Rs, Rq, Q> {
   user?: Users;
+}
+
+interface Token {
+  token: string;
+}
+
+interface UserData extends BaseUser {
+  avatar: string;
+}
+
+export interface AuthResBody extends BaseResponse {
+  data: Token;
+}
+
+export interface UserResBody extends BaseResponse {
+  data: UserData;
 }

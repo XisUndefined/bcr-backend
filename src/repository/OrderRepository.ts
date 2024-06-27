@@ -8,6 +8,7 @@ import {
   setCache,
 } from "../utils/cache.js";
 import ApiFeatures from "../utils/ApiFeatures.js";
+import { OrderQuery } from "../types/orders.js";
 
 export default class OrderRepository {
   static async count(query: QueryBuilder<Order, Order[]>) {
@@ -16,9 +17,9 @@ export default class OrderRepository {
   }
 
   static async get(
-    query: QueryBuilder<Order, Order[]>,
+    dbQuery: QueryBuilder<Order, Order[]>,
     cacheKey?: string,
-    paging?: Paging
+    reqQuery?: OrderQuery
   ) {
     const cachedOrder = cacheKey ? await getCache(cacheKey) : null;
 
@@ -26,16 +27,16 @@ export default class OrderRepository {
       return JSON.parse(cachedOrder) as Order[];
     }
 
-    const features = paging
+    const features = reqQuery
       ? new ApiFeatures(
-          query.throwIfNotFound({
+          dbQuery.throwIfNotFound({
             message: "Order data not found",
           }),
-          paging
+          reqQuery
         )
           .sort()
           .paginate()
-      : new ApiFeatures(query);
+      : new ApiFeatures(dbQuery);
     const order = await features.query;
 
     if (cacheKey) {

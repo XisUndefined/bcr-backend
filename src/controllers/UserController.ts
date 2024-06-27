@@ -1,32 +1,42 @@
 import { asyncErrorHandler } from "../utils/AsyncErrorHandler.js";
 import { Response, Request, NextFunction } from "express";
-import {
-  CreateUserBody,
-  LoginUserBody,
-  UpdateUserBody,
-  UserRequest,
-} from "../types/users.js";
 import UserService from "../services/UserService.js";
 import { sendResponseToken } from "../utils/sendResponseToken.js";
+import { ResponseNoData } from "../types/response.js";
+import {
+  AuthResBody,
+  CreateUserReqBody,
+  LoginUserReqBody,
+  UpdateUserReqBody,
+  UserRequest,
+  UserResBody,
+} from "../types/users.js";
 
 export default class UserController {
   static signup = asyncErrorHandler(
     async (
-      req: UserRequest<{}, {}, CreateUserBody>,
-      res: Response,
+      req: UserRequest<{}, AuthResBody | ResponseNoData, CreateUserReqBody>,
+      res: Response<AuthResBody | ResponseNoData>,
       next: NextFunction
     ) => {
       const request = req.body;
       const response = await UserService.signup(request, req.user);
 
-      sendResponseToken(response, 201, res);
+      if (!req.user) {
+        return sendResponseToken(response, 201, res);
+      }
+
+      res.status(201).json({
+        status: "success",
+        message: "Admin created successfully",
+      });
     }
   );
 
   static login = asyncErrorHandler(
     async (
-      req: Request<{}, {}, LoginUserBody>,
-      res: Response,
+      req: Request<{}, AuthResBody, LoginUserReqBody>,
+      res: Response<AuthResBody>,
       next: NextFunction
     ) => {
       const request = req.body;
@@ -45,7 +55,11 @@ export default class UserController {
   );
 
   static get = asyncErrorHandler(
-    async (req: UserRequest, res: Response, next: NextFunction) => {
+    async (
+      req: UserRequest,
+      res: Response<UserResBody>,
+      next: NextFunction
+    ) => {
       const response = await UserService.get(req.user!);
       const { id, password, role, created_at, updated_at, ...data } = response;
       res.status(200).json({
@@ -57,8 +71,8 @@ export default class UserController {
 
   static update = asyncErrorHandler(
     async (
-      req: UserRequest<{}, {}, UpdateUserBody>,
-      res: Response,
+      req: UserRequest<{}, UserResBody, UpdateUserReqBody>,
+      res: Response<UserResBody>,
       next: NextFunction
     ) => {
       const request = {

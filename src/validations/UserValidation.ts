@@ -9,6 +9,7 @@ const userSchema = z.object({
     .optional()
     .transform((value) => (value === "" ? undefined : value)),
   email: z.string().trim().toLowerCase().email(),
+  avatar: z.string().trim().optional(),
 });
 
 const fileSchema = z

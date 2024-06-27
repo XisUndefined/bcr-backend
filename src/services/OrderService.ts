@@ -1,23 +1,36 @@
+import { raw } from "objection";
 import { Car } from "../models/Car.model.js";
 import { Order, Orders } from "../models/Order.model.js";
 import { Users } from "../models/User.model.js";
 import CarRepository from "../repository/CarRepository.js";
 import OrderRepository from "../repository/OrderRepository.js";
 import {
-  CreateOrderBody,
+  CreateOrderReqBody,
   OrderParams,
-  UpdateOrderBody,
+  OrderQuery,
+  UpdateOrderReqBody,
 } from "../types/orders.js";
-import { Paging } from "../types/page.js";
 import ResponseError from "../utils/ResponseError.js";
 import { cloudinary } from "../utils/cloudinary.js";
 import OrderValidation from "../validations/OrderValidation.js";
 import { Validation } from "../validations/validation.js";
 
 export default class OrderService {
-  static async get(user: Users, request: OrderParams | Paging) {
+  static async get(user: Users, request: OrderParams | OrderQuery) {
     let orderQuery = Order.query()
-      .select("orders.*", "users.email as email", "cars.name as car")
+      .select(
+        "orders.id",
+        "users.email as email",
+        raw("concat(cars.manufacture, ' ', cars.model) as car"),
+        "orders.bank",
+        "orders.transfer_image",
+        "orders.status",
+        "orders.price",
+        "orders.start_rent",
+        "orders.finish_rent",
+        "orders.created_at",
+        "orders.updated_at"
+      )
       .join("users", "orders.user_id", "users.id")
       .join("cars", "orders.car_id", "cars.id");
 
@@ -45,30 +58,45 @@ export default class OrderService {
       }
     }
 
+    if ((request as OrderQuery).q) {
+      orderQuery = orderQuery.where((builder) => {
+        builder
+          .where("users.email", "ILIKE", `%${(request as OrderQuery).q}%`)
+          .orWhere(
+            "cars.manufacture",
+            "ILIKE",
+            `%${(request as OrderQuery).q}%`
+          )
+          .orWhere("cars.model", "ILIKE", `%${(request as OrderQuery).q}%`)
+          .orWhere("orders.status", "ILIKE", `%${(request as OrderQuery).q}%`);
+      });
+    }
+
+    const { q, ...reqQuery } = request as OrderQuery;
     const orders = (request as OrderParams).orderId
       ? await OrderRepository.get(orderQuery, cacheKey)
-      : await OrderRepository.get(orderQuery, cacheKey, request as Paging);
+      : await OrderRepository.get(orderQuery, cacheKey, reqQuery);
     const orderCount = await OrderRepository.count(orderQuery);
-    const total_page = (request as Paging).size
-      ? Math.ceil(orderCount / Number((request as Paging).size))
+    const total_page = (request as OrderQuery).size
+      ? Math.ceil(orderCount / Number((request as OrderQuery).size))
       : Math.ceil(orderCount / 10);
     return (request as OrderParams).orderId
-      ? orders
+      ? orders[0]
       : {
           data: orders,
-          page: {
-            current_page: (request as Paging).page
-              ? Number((request as Paging).page)
+          paging: {
+            page: (request as OrderQuery).page
+              ? Number((request as OrderQuery).page)
               : 1,
             total_page,
-            size: (request as Paging).size
-              ? Number((request as Paging).size)
+            size: (request as OrderQuery).size
+              ? Number((request as OrderQuery).size)
               : 10,
           },
         };
   }
 
-  static async create(user: Users, request: CreateOrderBody) {
+  static async create(user: Users, request: CreateOrderReqBody) {
     if (user.role !== "customer") {
       throw new ResponseError("A non-customer user cannot make an order", 403);
     }
@@ -113,8 +141,8 @@ export default class OrderService {
     user: Users,
     request: {
       params: OrderParams;
-      body: UpdateOrderBody;
-      file: any | undefined;
+      body: UpdateOrderReqBody;
+      file: Express.Multer.File | undefined;
     }
   ) {
     let orderData: Partial<Orders>;
@@ -130,8 +158,8 @@ export default class OrderService {
         OrderValidation.FILE_UPDATE,
         request
       );
-      const fileBase64 = parsedRequest.file.buffer.toString("base64");
-      const file = `data:${parsedRequest.file.mimetype};base64,${fileBase64}`;
+      const fileBase64 = parsedRequest.file?.buffer.toString("base64");
+      const file = `data:${parsedRequest.file?.mimetype};base64,${fileBase64}`;
       const result = await cloudinary.uploader.upload(file, {
         public_id: `binar-car-rental/upload/data/slip/${parsedRequest.params.orderId}-slip`,
       });

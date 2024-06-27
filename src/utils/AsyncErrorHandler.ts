@@ -1,12 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-
-interface Params {
-  [key: string]: string;
-}
-
-interface Query {
-  [key: string]: undefined | string | string[] | Query | Query[];
-}
+import { Params, Query } from "../types/request.js";
 
 interface AsyncHandler<P = Params, Rs = any, Rq = any, Q = Query> {
   (
@@ -27,9 +20,3 @@ export const asyncErrorHandler = <P = Params, Rs = any, Rq = any, Q = Query>(
     func(req, res, next).catch((err) => next(err));
   };
 };
-
-// export class AsyncErrorHandler<P, Rs, Rq, Q> {
-//   static wraper(func: AsyncHandler) {
-
-//   };
-// }

@@ -7,8 +7,8 @@ import {
   getCache,
   setCache,
 } from "../utils/cache.js";
-import { Paging } from "../types/page.js";
 import { Order } from "../models/Order.model.js";
+import { CarQuery } from "../types/cars.js";
 
 export default class CarRepository {
   static async count(query: QueryBuilder<Car, Car[]>) {
@@ -16,8 +16,8 @@ export default class CarRepository {
   }
 
   static async get(
-    query: QueryBuilder<Car, Car[]>,
-    paging?: Paging,
+    dbQuery: QueryBuilder<Car, Car[]>,
+    reqQuery?: CarQuery,
     cacheKey?: string
   ) {
     const cachedCar = cacheKey ? await getCache(cacheKey) : null;
@@ -26,9 +26,9 @@ export default class CarRepository {
       return JSON.parse(cachedCar) as Car[];
     }
 
-    const features = paging
-      ? new ApiFeatures(query, paging).sort().paginate()
-      : new ApiFeatures(query).sort().paginate();
+    const features = reqQuery
+      ? new ApiFeatures(dbQuery, reqQuery).sort().paginate()
+      : new ApiFeatures(dbQuery).sort().paginate();
     const car = await features.query;
 
     if (cacheKey) {

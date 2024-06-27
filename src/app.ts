@@ -1,5 +1,6 @@
 // IMPORT PACKAGE
 import express, { Express } from "express";
+import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "./docs/openapi.json" assert { type: "json" };
 
@@ -19,6 +20,14 @@ const app: Express = express();
 // MIDDLEWARE
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cors());
+
+const swaggerUiOptions = {
+  defaultModelExpandDepth: -1,
+  defaultModelsExpandDepth: -1,
+  explorer: true,
+  customCss: ".models {display: none !important}",
+};
 
 // USE ROUTE
 app.use("/api/v1/auth", authRouter);
@@ -26,7 +35,11 @@ app.use("/api/v1/cars", carRouter);
 app.use("/api/v1/order", orderRouter);
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/admin", adminRouter);
-app.use("/api/v1/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use(
+  "/api/v1/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument, swaggerUiOptions)
+);
 
 app.all("*", (req, res, next) => {
   const err = new ResponseError(

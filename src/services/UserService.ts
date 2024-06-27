@@ -1,9 +1,9 @@
 import { User, Users } from "../models/User.model.js";
 import UserRepository from "../repository/UserRepository.js";
 import {
-  CreateUserBody,
-  LoginUserBody,
-  UpdateUserBody,
+  CreateUserReqBody,
+  LoginUserReqBody,
+  UpdateUserReqBody,
 } from "../types/users.js";
 import ResponseError from "../utils/ResponseError.js";
 import { cloudinary } from "../utils/cloudinary.js";
@@ -12,7 +12,7 @@ import { UserValidation } from "../validations/UserValidation.js";
 import { Validation } from "../validations/validation.js";
 
 export default class UserService {
-  static async signup(request: CreateUserBody, user?: Users) {
+  static async signup(request: CreateUserReqBody, user?: Users) {
     const signupRequest = Validation.validate(UserValidation.SIGNUP, request);
 
     const findUser = await UserRepository.get(
@@ -43,7 +43,7 @@ export default class UserService {
 
   static async update(
     user: Users,
-    request: { file: any | undefined; body: UpdateUserBody }
+    request: { file: Express.Multer.File | undefined; body: UpdateUserReqBody }
   ) {
     const userRequest = Validation.validate(UserValidation.UPDATE, request);
 
@@ -81,7 +81,7 @@ export default class UserService {
     return await UserRepository.update({ id: user.id, ...userData });
   }
 
-  static async login(request: LoginUserBody) {
+  static async login(request: LoginUserReqBody) {
     const loginRequest = Validation.validate(UserValidation.LOGIN, request);
 
     const findUser = await UserRepository.get(

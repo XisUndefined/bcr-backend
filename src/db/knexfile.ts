@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config({
   path:
-    process.env.NODE_ENV === "development"
+    process.env.NODE_ENV!.trim() === "development"
       ? "../../.env.development"
       : "../../.env.production",
 });
@@ -28,9 +28,11 @@ const config: { [key: string]: Knex.Config } = {
   production: {
     client: process.env.DB_CONNECTION,
     connection: {
+      host: process.env.DB_HOST,
       database: process.env.DB_DATABASE,
       user: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
+      port: Number(process.env.DB_PORT),
     },
     migrations: {
       directory: "./migrations",

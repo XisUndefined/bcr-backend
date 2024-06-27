@@ -1,5 +1,8 @@
-export interface Paging {
-  sort?: string;
+export interface PageQuery {
   page?: number;
   size?: number;
+}
+
+export interface Paging extends PageQuery {
+  total_page: number;
 }

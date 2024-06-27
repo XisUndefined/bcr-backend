@@ -5,18 +5,23 @@
   "main": "server.js",
   "scripts": {
     "migrate-make": "knex migrate:make index --knexfile=./src/db/knexfile.ts -x ts",
-    "latest": "tsc && knex migrate:latest --knexfile=./dist/db/knexfile --env development",
-    "rollback": "tsc && knex migrate:rollback --knexfile=./dist/db/knexfile --env development",
-    "status": "tsc && knex migrate:status --knexfile=./dist/db/knexfile --env development",
-    "seed": "tsc && knex seed:run --knexfile=./dist/db/knexfile --env development",
-    "start-dev": "nodemon --exec \"ts-node-esm -r dotenv/config ./src/server.ts dotenv_config_path=./.env.development\"",
-    "start-prod": "nodemon --exec \"tsc && node -r dotenv/config ./dist/server.js dotenv_config_path=./.env.production\""
+    "latest:dev": "tsc && SET NODE_ENV=development && knex migrate:latest --knexfile=./dist/db/knexfile --env development",
+    "latest:prod": "tsc && SET NODE_ENV=production && knex migrate:latest --knexfile=./dist/db/knexfile --env production",
+    "rollback:dev": "tsc && SET NODE_ENV=development && knex migrate:rollback --knexfile=./dist/db/knexfile --env development",
+    "rollback:prod": "tsc && SET NODE_ENV=production && knex migrate:rollback --knexfile=./dist/db/knexfile --env production",
+    "status:dev": "tsc && SET NODE_ENV=development && knex migrate:status --knexfile=./dist/db/knexfile --env development",
+    "status:prod": "tsc && SET NODE_ENV=production && knex migrate:status --knexfile=./dist/db/knexfile --env production",
+    "seed:dev": "tsc && SET NODE_ENV=development && knex seed:run --knexfile=./dist/db/knexfile --env development",
+    "seed:prod": "tsc && SET NODE_ENV=production && knex seed:run --knexfile=./dist/db/knexfile --env production",
+    "start:dev": "nodemon --exec \"ts-node-esm -r dotenv/config ./src/server.ts dotenv_config_path=./.env.development\"",
+    "start:prod": "nodemon --exec \"tsc && node -r dotenv/config ./dist/server.js dotenv_config_path=./.env.production\""
   },
   "type": "module",
   "author": "Muhlis Ahmad Abdillah",
   "license": "ISC",
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/multer": "^1.4.11",
@@ -26,8 +31,10 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.44.0",
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.2.0",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "ioredis": "^5.4.1",

@@ -4,15 +4,17 @@ const plateRegex =
   /^(A|B|D|F|T|Z|E|H|G|K|R|AB|AD|AE|AG|S|K|W|L|M|N|P|BL|BB|BK|BA|BM|BH|BG|BN|BE|BD|B|DA|KT|DB|DL|DM|DN|DT|DD|DC|DS|DE|DG|DH|EB|ED|EA|PA|PB)\s([0-9]{1,4})\s([A-Z]{1,3})$/;
 
 const carBaseSchema = z.object({
+  manufacture: z.string(),
+  model: z.string(),
+  transmission: z.string(),
   plate: z.string().refine((value) => plateRegex.test(value), {
     message: "Invalid car plate number",
   }),
-  transmission: z.string(),
-  name: z.string().max(50),
   year: z.number().positive(),
   driver_service: z.boolean(),
   rent_per_day: z.number().positive(),
   capacity: z.number().min(1).max(10),
+  type: z.string(),
   category: z.enum(["small", "medium", "large"], {
     errorMap: (issue, ctx) => {
       if (issue.code === z.ZodIssueCode.invalid_enum_value) {
@@ -23,6 +25,8 @@ const carBaseSchema = z.object({
       return { message: ctx.defaultError };
     },
   }),
+  options: z.string().optional(),
+  specs: z.string().optional(),
   description: z.string(),
 });
 
@@ -42,13 +46,19 @@ const fileSchema = z
   .optional();
 
 export default class CarValidation {
-  static readonly INPUT: ZodType = z.object({
+  static readonly CREATE: ZodType = z.object({
     body: carBaseSchema,
+    file: fileSchema,
+  });
+
+  static readonly UPDATE: ZodType = z.object({
+    body: carBaseSchema.partial(),
     file: fileSchema,
   });
 
   static readonly CATEGORY: ZodType = z.object({
     category: carBaseSchema.shape.category.optional(),
+    q: z.string().optional(),
     sort: z.string().optional(),
     page: z.number().positive(),
     size: z.number().positive(),

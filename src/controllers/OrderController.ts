@@ -1,9 +1,11 @@
 import { Order } from "../models/Order.model.js";
 import OrderService from "../services/OrderService.js";
 import {
-  CreateOrderBody,
+  CreateOrderReqBody,
   OrderParams,
-  UpdateOrderBody,
+  OrderQuery,
+  OrderResBody,
+  UpdateOrderReqBody,
 } from "../types/orders.js";
 import { Paging } from "../types/page.js";
 import { UserRequest } from "../types/users.js";
@@ -13,11 +15,15 @@ import { Response, NextFunction } from "express";
 export default class OrderController {
   static list = asyncErrorHandler(
     async (
-      req: UserRequest<{}, {}, {}, Paging>,
-      res: Response,
+      req: UserRequest<{}, OrderResBody, {}, OrderQuery>,
+      res: Response<OrderResBody>,
       next: NextFunction
     ) => {
-      const response = await OrderService.get(req.user!, req.query);
+      const response = (await OrderService.get(req.user!, req.query)) as {
+        data: Order[];
+        paging: Paging;
+      };
+
       res.status(200).json({
         status: "success",
         ...response,
@@ -27,23 +33,23 @@ export default class OrderController {
 
   static get = asyncErrorHandler(
     async (
-      req: UserRequest<OrderParams, {}, {}, Paging>,
-      res: Response,
+      req: UserRequest<OrderParams, OrderResBody>,
+      res: Response<OrderResBody>,
       next: NextFunction
     ) => {
-      const request = { ...req.params, ...req.query };
-      const response = await OrderService.get(req.user!, request);
+      const request = { ...req.params };
+      const response = (await OrderService.get(req.user!, request)) as Order;
       res.status(200).json({
         status: "success",
-        data: (response as Order[])[0],
+        data: response,
       });
     }
   );
 
   static create = asyncErrorHandler(
     async (
-      req: UserRequest<{}, {}, CreateOrderBody>,
-      res: Response,
+      req: UserRequest<{}, OrderResBody, CreateOrderReqBody>,
+      res: Response<OrderResBody>,
       next: NextFunction
     ) => {
       const response = await OrderService.create(req.user!, req.body);
@@ -56,8 +62,8 @@ export default class OrderController {
 
   static update = asyncErrorHandler(
     async (
-      req: UserRequest<OrderParams, {}, UpdateOrderBody>,
-      res: Response,
+      req: UserRequest<OrderParams, OrderResBody, UpdateOrderReqBody>,
+      res: Response<OrderResBody>,
       next: NextFunction
     ) => {
       const request = {

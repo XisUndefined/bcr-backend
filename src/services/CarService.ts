@@ -2,20 +2,21 @@ import { QueryBuilder } from "objection";
 import { Car, Cars } from "../models/Car.model.js";
 import { Users } from "../models/User.model.js";
 import CarRepository from "../repository/CarRepository.js";
-import {
-  CarBody,
-  CarCategoryParams,
-  CarIdParams,
-  CarQuery,
-} from "../types/cars.js";
-import { Paging } from "../types/page.js";
 import ResponseError from "../utils/ResponseError.js";
 import { cloudinary } from "../utils/cloudinary.js";
 import CarValidation from "../validations/CarValidation.js";
 import { Validation } from "../validations/validation.js";
+import {
+  CarCategoryParams,
+  CarIdParams,
+  CarQuery,
+  CarReqBody,
+  ReqCarSearchQuery,
+  UpdateCarReqBody,
+} from "../types/cars.js";
 
 export default class CarService {
-  static async get(user: Users, request: CarCategoryParams & Paging) {
+  static async get(user: Users, request: CarCategoryParams & CarQuery) {
     if (user.role === "customer") {
       throw new ResponseError(
         "The current user do not have the authorization of accessing this route",
@@ -25,7 +26,8 @@ export default class CarService {
 
     const parsedRequest = Validation.validate(CarValidation.CATEGORY, request);
 
-    const query = parsedRequest.category
+    let query: QueryBuilder<Car, Car[]>;
+    query = parsedRequest.category
       ? Car.query()
           .where({
             category: parsedRequest.category,
@@ -36,14 +38,20 @@ export default class CarService {
       ? `${parsedRequest.category}-${Car.tableName}-${parsedRequest.size}-${parsedRequest.page}`
       : `all-${Car.tableName}-${parsedRequest.size}-${parsedRequest.page}`;
 
-    const { category, ...queryParams } = parsedRequest;
+    query = parsedRequest.q
+      ? query.whereRaw("CONCAT(manufacture, ' ', model) ILIKE ?", [
+          `%${parsedRequest.q}%`,
+        ])
+      : query;
+
+    const { category, q, ...queryParams } = parsedRequest;
     const cars = await CarRepository.get(query, queryParams, cacheKey);
     const carsCount = await CarRepository.count(query);
     const total_page = Math.ceil(carsCount / queryParams.size!);
     return {
       data: cars,
-      page: {
-        current_page: queryParams.page,
+      paging: {
+        page: queryParams.page,
         total_page,
         size: queryParams.size,
       },
@@ -52,7 +60,7 @@ export default class CarService {
 
   static async create(
     user: Users,
-    request: { body: CarBody; file?: any | undefined }
+    request: { body: CarReqBody; file?: Express.Multer.File | undefined }
   ) {
     if (user.role === "customer") {
       throw new ResponseError(
@@ -60,7 +68,7 @@ export default class CarService {
         403
       );
     }
-    const carRequest = Validation.validate(CarValidation.INPUT, request);
+    const carRequest = Validation.validate(CarValidation.CREATE, request);
 
     const findCar = await CarRepository.get(
       Car.query().where({ plate: carRequest.body.plate })
@@ -107,18 +115,24 @@ export default class CarService {
       updated_by,
       updated_at,
       deleted_by,
+      category,
       ...filteredFieldCar
     } = car[0];
-    const data: Partial<Cars> =
-      user && user.role !== "customer" ? car[0] : filteredFieldCar;
+    const data = user && user.role !== "customer" ? car[0] : filteredFieldCar;
     return data;
   }
 
-  static async search(request: CarQuery & Paging) {
-    const parsedRequest = Validation.validate(CarValidation.SEARCH, request);
+  static async search(request: Partial<ReqCarSearchQuery>) {
+    const parsedRequest = Validation.validate(
+      CarValidation.SEARCH,
+      request as ReqCarSearchQuery
+    );
     const { start_date, finish_date } = parsedRequest;
 
-    if (!(new Date(start_date) < new Date(finish_date))) {
+    if (
+      !(new Date(start_date) < new Date(finish_date)) ||
+      new Date(start_date) <= new Date()
+    ) {
       throw new ResponseError("Car data not found", 404);
     }
 
@@ -152,14 +166,15 @@ export default class CarService {
         updated_at,
         updated_by,
         deleted_by,
+        category,
         ...rest
       } = car;
       return rest;
     });
     return {
       data,
-      page: {
-        current_page: parsedRequest.page!,
+      paging: {
+        page: parsedRequest.page!,
         total_page,
         size: parsedRequest.size!,
       },
@@ -168,7 +183,11 @@ export default class CarService {
 
   static async update(
     user: Users,
-    request: { params: CarIdParams; body: CarBody; file: any | undefined }
+    request: {
+      params: CarIdParams;
+      body: UpdateCarReqBody;
+      file: Express.Multer.File | undefined;
+    }
   ) {
     if (user.role === "customer") {
       throw new ResponseError(
@@ -176,7 +195,7 @@ export default class CarService {
         403
       );
     }
-    const carRequest = Validation.validate(CarValidation.INPUT, request);
+    const carRequest = Validation.validate(CarValidation.UPDATE, request);
 
     const selectedCar = await CarRepository.get(
       Car.query()
@@ -191,6 +210,7 @@ export default class CarService {
       ...carRequest.body,
     };
     if (
+      carRequest.body.plate &&
       carRequest.body.plate !== selectedCar[0].plate &&
       selectedCar[0].image
     ) {

@@ -17,25 +17,6 @@ export const sendResponseToken = (
     }
   );
 
-  const data: {
-    firstname?: string;
-    lastname?: string;
-    email: string;
-    token?: string;
-  } =
-    statusCode === 201
-      ? {
-          firstname: newUser.firstname!,
-          email: newUser.email!,
-          token,
-        }
-      : {
-          email: newUser.email!,
-          token,
-        };
-
-  if (newUser.lastname && statusCode === 201) data.lastname = newUser.lastname;
-
   res.status(statusCode).json({
     status:
       statusCode >= 200 && statusCode < 300
@@ -43,6 +24,8 @@ export const sendResponseToken = (
         : statusCode >= 400 && statusCode < 500
         ? "fail"
         : "error",
-    data,
+    data: {
+      token,
+    },
   });
 };
