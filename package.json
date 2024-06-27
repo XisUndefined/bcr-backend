@@ -33,6 +33,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "@upstash/redis": "^1.31.6",
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.2.0",
     "cors": "^2.8.5",
