@@ -48,7 +48,7 @@ jobs:
             -H "Authorization: Bearer $KOYEB_API_TOKEN" \
             -H "Content-Type: application/json" \
             -d '{
-              "name": "bcr-backend"
+              "name": "bcr-backend",
               "git": {
                 "repo": "https://github.com/XisUndefined/bcr-backend.git",
                 "branch": "main"
