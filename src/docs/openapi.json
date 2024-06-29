@@ -12,7 +12,7 @@
   "servers": [
     {
       "description": "Binar Car Rental RESTful API",
-      "url": "https://legislative-sabra-xisundefined-292b3617.koyeb.app/"
+      "url": "http://localhost:8000/api/v1"
     }
   ],
   "components": {
