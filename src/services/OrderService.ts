@@ -69,7 +69,7 @@ export default class OrderService {
           )
           .orWhere("cars.model", "ILIKE", `%${(request as OrderQuery).q}%`)
           .orWhere("orders.status", "ILIKE", `%${(request as OrderQuery).q}%`);
-      });
+      }).throwIfNotFound({ message: "Order data not found" });
       cacheKey = undefined;
     }
 

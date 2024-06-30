@@ -41,7 +41,7 @@ export default class CarService {
     if (parsedRequest.q) {
       query = query.whereRaw("CONCAT(manufacture, ' ', model) ILIKE ?", [
           `%${parsedRequest.q}%`,
-        ]);
+        ]).throwIfNotFound({ message: "Car data not found" });
       cacheKey = undefined
     }
 
