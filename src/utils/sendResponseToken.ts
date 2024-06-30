@@ -26,6 +26,7 @@ export const sendResponseToken = (
         : "error",
     data: {
       token,
+      role: newUser.role
     },
   });
 };

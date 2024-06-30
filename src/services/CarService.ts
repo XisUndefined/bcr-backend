@@ -1,4 +1,4 @@
-import { QueryBuilder } from "objection";
+import { QueryBuilder, raw } from "objection";
 import { Car, Cars } from "../models/Car.model.js";
 import { Users } from "../models/User.model.js";
 import CarRepository from "../repository/CarRepository.js";
@@ -45,6 +45,18 @@ export default class CarService {
       : query;
 
     const { category, q, ...queryParams } = parsedRequest;
+    if (queryParams.sort) {
+      queryParams.sort.trim().split(",").forEach(field => {
+        if (field.includes('name')){
+          if (field.startsWith('-')) {
+            query = query.orderBy(raw('manufacture || \' \' || model'), 'desc')
+          } else {
+            query = query.orderBy(raw('manufacture || \' \' || model'), 'asc')
+          }
+        }
+      })
+    }
+      
     const cars = await CarRepository.get(query, queryParams, cacheKey);
     const carsCount = await CarRepository.count(query);
     const total_page = Math.ceil(carsCount / queryParams.size!);
@@ -153,6 +165,17 @@ export default class CarService {
       : query;
 
     const { sort, page, size } = parsedRequest;
+    if (sort) {
+      sort.trim().split(",").forEach(field => {
+        if (field.includes('name')){
+          if (field.startsWith('-')) {
+            query = query.orderBy(raw('manufacture || \' \' || model'), 'desc')
+          } else {
+            query = query.orderBy(raw('manufacture || \' \' || model'), 'asc')
+          }
+        }
+      })
+    }
     const carsCount = await CarRepository.count(query);
     const cars = await CarRepository.get(
       query.throwIfNotFound({ message: "Car data not found" }),

@@ -45,7 +45,11 @@ export default class ApiFeatures<T extends Model> {
 
   sort(): this {
     if (this.params?.sort) {
-      const sortBy = this.params.sort.split(",").map((sortField: string) => {
+      const sortBy = this.params.sort
+        .trim()
+        .split(",")
+        .filter((sortField: string) => sortField !== 'name' && sortField !== '-name')
+        .map((sortField: string) => {
         if (sortField.startsWith("-")) {
           return { column: sortField.substring(1), order: "desc" };
         } else {
