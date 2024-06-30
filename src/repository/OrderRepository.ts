@@ -1,6 +1,5 @@
 import { QueryBuilder } from "objection";
 import { Order, Orders } from "../models/Order.model.js";
-import { Paging } from "../types/page.js";
 import {
   deleteCache,
   deleteKeysByPrefix,

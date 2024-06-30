@@ -19,7 +19,10 @@ export default class OrderController {
       res: Response<OrderResBody>,
       next: NextFunction
     ) => {
-      const response = (await OrderService.get(req.user!, req.query)) as {
+      const request = { ...req.query };
+      request.page = req.query.page ? Number(req.query.page) : 1;
+      request.size = req.query.size ? Number(req.query.size) : 10;
+      const response = (await OrderService.get(req.user!, request)) as {
         data: Order[];
         paging: Paging;
       };

@@ -34,7 +34,7 @@ export default class OrderService {
       .join("users", "orders.user_id", "users.id")
       .join("cars", "orders.car_id", "cars.id");
 
-    let cacheKey: string | undefined = `all-${Order.tableName}`;
+    let cacheKey: string | undefined = `all-${Order.tableName}-${(request as OrderQuery).size}-${(request as OrderQuery).page}`;
 
     if ((request as OrderParams).orderId) {
       if (user.role === "customer") {
@@ -53,7 +53,7 @@ export default class OrderService {
       }
     } else {
       if (user.role === "customer") {
-        cacheKey = `${user.id}-${Order.tableName}`;
+        cacheKey = `${user.id}-${Order.tableName}-${(request as OrderQuery).size}-${(request as OrderQuery).page}`;
         orderQuery = orderQuery.where("orders.user_id", user.id);
       }
     }
@@ -70,9 +70,13 @@ export default class OrderService {
           .orWhere("cars.model", "ILIKE", `%${(request as OrderQuery).q}%`)
           .orWhere("orders.status", "ILIKE", `%${(request as OrderQuery).q}%`);
       });
+      cacheKey = undefined;
     }
 
     const { q, ...reqQuery } = request as OrderQuery;
+    if (reqQuery.sort) {
+      cacheKey = undefined;
+    }
     const orders = (request as OrderParams).orderId
       ? await OrderRepository.get(orderQuery, cacheKey)
       : await OrderRepository.get(orderQuery, cacheKey, reqQuery);

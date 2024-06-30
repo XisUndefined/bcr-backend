@@ -34,15 +34,16 @@ export default class CarService {
           })
           .throwIfNotFound({ message: "Car data not found" })
       : Car.query().throwIfNotFound({ message: "Car data not found" });
-    const cacheKey = parsedRequest.category
+    let cacheKey: string | undefined = parsedRequest.category
       ? `${parsedRequest.category}-${Car.tableName}-${parsedRequest.size}-${parsedRequest.page}`
       : `all-${Car.tableName}-${parsedRequest.size}-${parsedRequest.page}`;
 
-    query = parsedRequest.q
-      ? query.whereRaw("CONCAT(manufacture, ' ', model) ILIKE ?", [
+    if (parsedRequest.q) {
+      query = query.whereRaw("CONCAT(manufacture, ' ', model) ILIKE ?", [
           `%${parsedRequest.q}%`,
-        ])
-      : query;
+        ]);
+      cacheKey = undefined
+    }
 
     const { category, q, ...queryParams } = parsedRequest;
     if (queryParams.sort) {
@@ -55,6 +56,7 @@ export default class CarService {
           }
         }
       })
+      cacheKey = undefined
     }
       
     const cars = await CarRepository.get(query, queryParams, cacheKey);
