@@ -44,6 +44,7 @@ interface Token {
 
 interface UserData extends BaseUser {
   avatar: string;
+  role: string
 }
 
 export interface AuthResBody extends BaseResponse {

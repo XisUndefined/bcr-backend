@@ -61,7 +61,7 @@ export default class UserController {
       next: NextFunction
     ) => {
       const response = await UserService.get(req.user!);
-      const { id, password, role, created_at, updated_at, ...data } = response;
+      const { id, password, created_at, updated_at, ...data } = response;
       res.status(200).json({
         status: "success",
         data,
@@ -80,7 +80,7 @@ export default class UserController {
         file: req.file,
       };
       const response = await UserService.update(req.user!, request);
-      const { id, password, role, created_at, updated_at, ...data } = response;
+      const { id, password, created_at, updated_at, ...data } = response;
       res.status(200).json({
         status: "success",
         data,
