@@ -1,6 +1,7 @@
 // IMPORT PACKAGE
 import express, { Express } from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "./docs/openapi.json" assert { type: "json" };
 
@@ -14,7 +15,6 @@ import adminRouter from "./routes/adminRouter.js";
 // IMPORT CONTROLLER, HANDLER, AND MIDDLEWARE
 import ResponseError from "./utils/ResponseError.js";
 import { globalErrorMiddleware } from "./middleware/errorMiddleware.js";
-import cookieParser from "cookie-parser";
 
 const app: Express = express();
 

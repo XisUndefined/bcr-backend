@@ -11,7 +11,6 @@ import {
   UserRequest,
   UserResBody,
 } from "../types/users.js";
-// import jwt from "jsonwebtoken";
 
 export default class UserController {
   static signup = asyncErrorHandler(
@@ -64,28 +63,6 @@ export default class UserController {
     }
   );
 
-  // static dummyRefresh = asyncErrorHandler(
-  //   async (req: Request, res: Response, next: NextFunction) => {
-  //     res.cookie(
-  //       "token",
-  //       jwt.sign(
-  //         { id: "d611985e-b094-4c04-8e0c-d5f4beeb1d03" },
-  //         process.env.JWT_REFRESH_SECRET as string,
-  //         { expiresIn: "1m" }
-  //       ),
-  //       {
-  //         httpOnly: true,
-  //         secure: true,
-  //         sameSite: "none",
-  //         maxAge: 5 * 60 * 1000, //cookie expiry: set to 1 minute
-  //       }
-  //     );
-  //     res.status(200).json({
-  //       status: "success",
-  //     });
-  //   }
-  // );
-
   static logout = asyncErrorHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const token = req.headers.authorization!.split(" ")[1];
@@ -133,140 +110,3 @@ export default class UserController {
     }
   );
 }
-
-// export default class AuthController {
-//   static signup = asyncErrorHandler(
-//     async (
-//       req: Request<{}, {}, Partial<Users>>,
-//       res: Response,
-//       next: NextFunction
-//     ) => {
-//       const user = await User.query().findOne({ email: req.body.email });
-
-//       if (user) {
-//         const error = new ResponseError(
-//           "This email is already registered",
-//           409
-//         );
-//         return next(error);
-//       }
-
-//       if (req.body.lastname === "") delete req.body.lastname;
-//       if (req.body.role) delete req.body.role;
-//       if (req.body.id) delete req.body.id;
-
-//       const newUser = await User.query().insert(req.body);
-
-//       sendResponseToken(newUser, 201, res);
-//     }
-//   );
-
-//   static login = asyncErrorHandler(
-//     async (
-//       req: Request<{}, {}, Partial<Users>>,
-//       res: Response,
-//       next: NextFunction
-//     ) => {
-//       // INPUT CHECK EMAIL & PASSWORD
-//       const { email, password } = req.body;
-//       if (!email || !password) {
-//         const error = new ResponseError(
-//           "Please insert email and password",
-//           400
-//         );
-//         return next(error);
-//       }
-
-//       // CHECK REGISTERED USER EMAIL
-//       const user = await User.query().findOne({ email });
-//       if (!user) {
-//         const error = new ResponseError(
-//           "The requested user could not be found",
-//           404
-//         );
-//         return next(error);
-//       }
-
-//       // CHECK PASSWORD
-//       const isMatch = await user.comparePassword(password);
-//       if (!isMatch) {
-//         const error = new ResponseError(
-//           "Incorrect password: The password you entered is incorrect. Please try again",
-//           400
-//         );
-//         return next(error);
-//       }
-
-//       // SENDING THE TOKEN
-//       sendResponseToken(user, 200, res);
-//     }
-//   );
-
-//   static protect = asyncErrorHandler(
-//     async (req: UserRequest, _: Response, next: NextFunction) => {
-//       // CHECK TOKEN IN THE REQUEST HEADER
-//       const testToken = req.headers.authorization;
-//       if (!testToken || !testToken.startsWith("Bearer ")) {
-//         const error = new ResponseError("You are not logged in!", 401);
-//         return next(error);
-//       }
-
-//       const token = testToken.split(" ")[1];
-
-//       // CHECK IF TOKEN BLACKLISTED
-//       if ((await getCache(`blacklist-${token}`)) === "true") {
-//         const error = new ResponseError(
-//           "Token has been invalidated. Please log in again",
-//           401
-//         );
-//         return next(error);
-//       }
-
-//       // VERIFIED TOKEN
-//       const decodedToken = await decodeToken(
-//         token,
-//         process.env.JWT_SECRET as string
-//       );
-
-//       // CHECK USER WITH ID IN THE TOKEN PAYLOAD
-//       const user = await User.query().findById(decodedToken.id);
-
-//       if (!user) {
-//         const error = new ResponseError(
-//           "The user with the given token does not exist",
-//           401
-//         );
-//         return next(error);
-//       }
-
-//       // ASSIGN USER TO REQUEST VARIABLE
-//       req.user = user;
-//       next();
-//     }
-//   );
-
-//   static logout = asyncErrorHandler(
-//     async (req: Request, res: Response, next: NextFunction) => {
-//       const testToken = req.headers.authorization;
-//       if (!testToken || !testToken.startsWith("Bearer ")) {
-//         const error = new ResponseError("You are not logged in!", 401);
-//         return next(error);
-//       }
-
-//       const token = testToken.split(" ")[1];
-
-//       const decodedToken = await decodeToken(
-//         token,
-//         process.env.JWT_SECRET as string
-//       );
-//       const timeToExpire = decodedToken.exp - Math.floor(Date.now() / 1000);
-
-//       await setCache(`blacklist-${token}`, "true", timeToExpire);
-
-//       res.status(200).json({
-//         status: "success",
-//         message: "Logged out successfully",
-//       });
-//     }
-//   );
-// }
