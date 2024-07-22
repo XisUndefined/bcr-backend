@@ -13,7 +13,7 @@
     "status:prod": "tsc && SET NODE_ENV=production && knex migrate:status --knexfile=./dist/db/knexfile --env production",
     "seed:dev": "tsc && SET NODE_ENV=development && knex seed:run --knexfile=./dist/db/knexfile --env development",
     "seed:prod": "tsc && SET NODE_ENV=production && knex seed:run --knexfile=./dist/db/knexfile --env production",
-    "start:dev": "nodemon --exec \"ts-node-esm -r dotenv/config ./src/server.ts dotenv_config_path=./.env.development\"",
+    "start:dev": "nodemon --exec \"tsx -r dotenv/config ./src/server.ts dotenv_config_path=./.env.development\"",
     "start:prod": "nodemon --exec \"tsc && node -r dotenv/config ./dist/server.js dotenv_config_path=./.env.production\"",
     "build": "tsc",
     "start": "node ./dist/server.js"
@@ -29,13 +29,15 @@
     "@types/multer": "^1.4.11",
     "@types/node": "^20.12.11",
     "@types/swagger-ui-express": "^4.1.6",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.16.2",
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "@types/cookie-parser": "^1.4.7",
     "@upstash/redis": "^1.31.6",
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.2.0",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",

@@ -9,7 +9,9 @@ import { UserRequest } from "../types/users.js";
 
 export const authMiddleware = asyncErrorHandler(
   async (req: UserRequest, res: Response, next: NextFunction) => {
-    const testToken = req.headers.authorization;
+    const testToken =
+      req.headers.authorization ||
+      (req.headers.Authorization as string | undefined);
     if (!testToken || !testToken.startsWith("Bearer")) {
       const error = new ResponseError("You are not logged in!", 401);
       return next(error);
@@ -27,7 +29,7 @@ export const authMiddleware = asyncErrorHandler(
 
     const decodedToken = await decodeToken(
       token,
-      process.env.JWT_SECRET as string
+      process.env.JWT_ACCESS_SECRET as string
     );
 
     const findUser = await UserRepository.get(

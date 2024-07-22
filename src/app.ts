@@ -14,12 +14,14 @@ import adminRouter from "./routes/adminRouter.js";
 // IMPORT CONTROLLER, HANDLER, AND MIDDLEWARE
 import ResponseError from "./utils/ResponseError.js";
 import { globalErrorMiddleware } from "./middleware/errorMiddleware.js";
+import cookieParser from "cookie-parser";
 
 const app: Express = express();
 
 // MIDDLEWARE
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors());
 
 const swaggerUiOptions = {

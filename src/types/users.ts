@@ -40,11 +40,12 @@ export interface UserRequest<P = Params, Rs = any, Rq = any, Q = Query>
 
 interface Token {
   token: string;
+  role: string;
 }
 
 interface UserData extends BaseUser {
   avatar: string;
-  role: string
+  role: string;
 }
 
 export interface AuthResBody extends BaseResponse {

@@ -15,11 +15,13 @@ export const decodeToken = async (
     if (jwtSecret) {
       jwt.verify(token, jwtSecret, (err, decoded) => {
         if (err) {
-          throw new ResponseError(`Invalid token: ${err.message}`, 498);
+          reject(new ResponseError(`Invalid token: ${err.message}`, 498));
         }
         if (typeof decoded === "object") {
           resolve(decoded as IVerifiedUserType);
         }
       });
+    } else {
+      reject(new ResponseError("JWT Secret not provided", 500));
     }
   });

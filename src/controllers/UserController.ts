@@ -11,6 +11,7 @@ import {
   UserRequest,
   UserResBody,
 } from "../types/users.js";
+// import jwt from "jsonwebtoken";
 
 export default class UserController {
   static signup = asyncErrorHandler(
@@ -46,10 +47,54 @@ export default class UserController {
     }
   );
 
+  static refresh = asyncErrorHandler(
+    async (
+      req: Request<{}, AuthResBody>,
+      res: Response<AuthResBody>,
+      next: NextFunction
+    ) => {
+      const refreshToken: string | undefined = req.cookies
+        ? req.cookies.token
+        : undefined;
+      const data = await UserService.refresh(refreshToken, res);
+      res.status(200).json({
+        status: "success",
+        data,
+      });
+    }
+  );
+
+  // static dummyRefresh = asyncErrorHandler(
+  //   async (req: Request, res: Response, next: NextFunction) => {
+  //     res.cookie(
+  //       "token",
+  //       jwt.sign(
+  //         { id: "d611985e-b094-4c04-8e0c-d5f4beeb1d03" },
+  //         process.env.JWT_REFRESH_SECRET as string,
+  //         { expiresIn: "1m" }
+  //       ),
+  //       {
+  //         httpOnly: true,
+  //         secure: true,
+  //         sameSite: "none",
+  //         maxAge: 5 * 60 * 1000, //cookie expiry: set to 1 minute
+  //       }
+  //     );
+  //     res.status(200).json({
+  //       status: "success",
+  //     });
+  //   }
+  // );
+
   static logout = asyncErrorHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const token = req.headers.authorization!.split(" ")[1];
       const response = await UserService.logout(token);
+      res.clearCookie("token", {
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+      });
       res.status(200).json(response);
     }
   );

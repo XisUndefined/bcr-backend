@@ -7,15 +7,30 @@ export const sendResponseToken = (
   statusCode: number,
   res: Response
 ) => {
-  const token = jwt.sign(
+  const refreshToken = jwt.sign(
     {
       id: newUser.id,
     },
-    process.env.JWT_SECRET as string,
+    process.env.JWT_REFRESH_SECRET as string,
     {
       expiresIn: "7d",
     }
   );
+
+  const accessToken = jwt.sign(
+    {
+      id: newUser.id,
+    },
+    process.env.JWT_ACCESS_SECRET as string,
+    { expiresIn: "15m" }
+  );
+
+  res.cookie("token", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to 7 days
+  });
 
   res.status(statusCode).json({
     status:
@@ -25,8 +40,8 @@ export const sendResponseToken = (
         ? "fail"
         : "error",
     data: {
-      token,
-      role: newUser.role
+      token: accessToken,
+      role: newUser.role,
     },
   });
 };

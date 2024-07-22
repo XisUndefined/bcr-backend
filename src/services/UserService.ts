@@ -1,5 +1,6 @@
 import { User, Users } from "../models/User.model.js";
 import UserRepository from "../repository/UserRepository.js";
+import jwt from "jsonwebtoken";
 import {
   CreateUserReqBody,
   LoginUserReqBody,
@@ -10,6 +11,7 @@ import { cloudinary } from "../utils/cloudinary.js";
 import { decodeToken } from "../utils/decodeToken.js";
 import { UserValidation } from "../validations/UserValidation.js";
 import { Validation } from "../validations/validation.js";
+import { Response } from "express";
 
 export default class UserService {
   static async signup(request: CreateUserReqBody, user?: Users) {
@@ -81,6 +83,43 @@ export default class UserService {
     return await UserRepository.update({ id: user.id, ...userData });
   }
 
+  static async refresh(refreshToken: string | undefined, res: Response) {
+    if (!refreshToken) {
+      throw new ResponseError("You are not logged in!", 401);
+    }
+
+    let decodedToken;
+    try {
+      decodedToken = await decodeToken(
+        refreshToken,
+        process.env.JWT_REFRESH_SECRET as string
+      );
+    } catch (err) {
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      });
+      throw err;
+    }
+
+    const findUser = await UserRepository.get(
+      User.query()
+        .where({ id: decodedToken.id })
+        .throwIfNotFound("The user with the given token does not exist")
+    );
+
+    const accessToken = jwt.sign(
+      {
+        id: findUser[0].id,
+      },
+      process.env.JWT_ACCESS_SECRET as string,
+      { expiresIn: "15m" }
+    );
+
+    return { token: accessToken, role: findUser[0].role };
+  }
+
   static async login(request: LoginUserReqBody) {
     const loginRequest = Validation.validate(UserValidation.LOGIN, request);
 
@@ -104,7 +143,7 @@ export default class UserService {
   static async logout(token: string) {
     const decodedToken = await decodeToken(
       token,
-      process.env.JWT_SECRET as string
+      process.env.JWT_ACCESS_SECRET as string
     );
     const timeToExpire = decodedToken.exp - Math.floor(Date.now() / 1000);
     return await UserRepository.dispose({

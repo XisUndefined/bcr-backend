@@ -4,7 +4,9 @@ import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+// router.route("/dummy-refresh").get(UserController.dummyRefresh);
 router.route("/signup").post(UserController.signup);
+router.route("/refresh").get(UserController.refresh);
 router.route("/login").post(UserController.login);
 router.route("/logout").post(authMiddleware, UserController.logout);
 
