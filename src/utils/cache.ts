@@ -1,6 +1,12 @@
 import { Redis } from "ioredis";
 
-const redis = new Redis(process.env.UPSTASH_REDIS_URL as string);
+const redis = new Redis(
+  process.env.NODE_ENV!.trim() === "development"
+    ? `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT as string}/${
+        process.env.REDIS_DB
+      }`
+    : (process.env.UPSTASH_REDIS_URL as string)
+);
 
 export const setCache = async (key: string, value: string, ttl: number) => {
   await redis.set(key, value, "EX", ttl);
