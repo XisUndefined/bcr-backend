@@ -10,6 +10,11 @@ export const sendResponseToken = (
   const refreshToken = jwt.sign(
     {
       id: newUser.id,
+      email: newUser.email,
+      avatar: newUser.avatar,
+      firstname: newUser.firstname,
+      lastname: newUser.lastname,
+      role: newUser.role,
     },
     process.env.JWT_REFRESH_SECRET as string,
     {
@@ -20,9 +25,14 @@ export const sendResponseToken = (
   const accessToken = jwt.sign(
     {
       id: newUser.id,
+      email: newUser.email,
+      avatar: newUser.avatar,
+      firstname: newUser.firstname,
+      lastname: newUser.lastname,
+      role: newUser.role,
     },
     process.env.JWT_ACCESS_SECRET as string,
-    { expiresIn: "15m" }
+    { expiresIn: "5m" }
   );
 
   res.cookie("token", refreshToken, {
@@ -41,7 +51,6 @@ export const sendResponseToken = (
         : "error",
     data: {
       token: accessToken,
-      role: newUser.role,
     },
   });
 };
