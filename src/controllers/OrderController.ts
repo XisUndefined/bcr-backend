@@ -10,10 +10,10 @@ import {
 import { Paging } from "../types/page.js";
 import { UserRequest } from "../types/users.js";
 import { asyncErrorHandler } from "../utils/AsyncErrorHandler.js";
-import { Response, NextFunction } from "express";
+import { Response, NextFunction, Request } from "express";
 
 export default class OrderController {
-  static list = asyncErrorHandler(
+  static adminList = asyncErrorHandler(
     async (
       req: UserRequest<{}, OrderResBody, {}, OrderQuery>,
       res: Response<OrderResBody>,
@@ -22,7 +22,7 @@ export default class OrderController {
       const request = { ...req.query };
       request.page = req.query.page ? Number(req.query.page) : 1;
       request.size = req.query.size ? Number(req.query.size) : 10;
-      const response = (await OrderService.get(req.user!, request)) as {
+      const response = (await OrderService.adminGet(req.user!, request)) as {
         data: Order[];
         paging: Paging;
       };
@@ -34,14 +34,56 @@ export default class OrderController {
     }
   );
 
-  static get = asyncErrorHandler(
+  static customerList = asyncErrorHandler(
+    async (
+      req: UserRequest<{}, OrderResBody, {}, OrderQuery>,
+      res: Response<OrderResBody>,
+      next: NextFunction
+    ) => {
+      const request = { ...req.query };
+      request.page = req.query.page ? Number(req.query.page) : 1;
+      request.size = req.query.size ? Number(req.query.size) : 10;
+      const response = (await OrderService.customerGet(req.user!, request)) as {
+        data: Order[];
+        paging: Paging;
+      };
+
+      res.status(200).json({
+        status: "success",
+        ...response,
+      });
+    }
+  );
+
+  static adminGetOrderById = asyncErrorHandler(
     async (
       req: UserRequest<OrderParams, OrderResBody>,
       res: Response<OrderResBody>,
       next: NextFunction
     ) => {
       const request = { ...req.params };
-      const response = (await OrderService.get(req.user!, request)) as Order;
+      const response = (await OrderService.adminGet(
+        req.user!,
+        request
+      )) as Order;
+      res.status(200).json({
+        status: "success",
+        data: response,
+      });
+    }
+  );
+
+  static customerGetOrderById = asyncErrorHandler(
+    async (
+      req: UserRequest<OrderParams, OrderResBody>,
+      res: Response<OrderResBody>,
+      next: NextFunction
+    ) => {
+      const request = { ...req.params };
+      const response = (await OrderService.customerGet(
+        req.user!,
+        request
+      )) as Order;
       res.status(200).json({
         status: "success",
         data: response,
@@ -63,18 +105,34 @@ export default class OrderController {
     }
   );
 
-  static update = asyncErrorHandler(
+  static updateFile = asyncErrorHandler(
     async (
-      req: UserRequest<OrderParams, OrderResBody, UpdateOrderReqBody>,
+      req: UserRequest<OrderParams, OrderResBody>,
       res: Response<OrderResBody>,
       next: NextFunction
     ) => {
       const request = {
         params: req.params,
         file: req.file,
+      };
+      const response = await OrderService.updateFile(req.user!, request);
+      res.status(200).json({
+        status: "success",
+        data: response,
+      });
+    }
+  );
+  static updateStatus = asyncErrorHandler(
+    async (
+      req: Request<OrderParams, OrderResBody, UpdateOrderReqBody>,
+      res: Response<OrderResBody>,
+      next: NextFunction
+    ) => {
+      const request = {
+        params: req.params,
         body: req.body,
       };
-      const response = await OrderService.update(req.user!, request);
+      const response = await OrderService.updateStatus(request);
       res.status(200).json({
         status: "success",
         data: response,

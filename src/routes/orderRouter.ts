@@ -7,16 +7,16 @@ const router = express.Router();
 
 router
   .route("/")
-  .get(authMiddleware, OrderController.list)
+  .get(authMiddleware, OrderController.customerList)
   .post(authMiddleware, OrderController.create);
 
 router
   .route("/:orderId")
-  .get(authMiddleware, OrderController.get)
+  .get(authMiddleware, OrderController.customerGetOrderById)
   .patch(
     authMiddleware,
     uploadMiddleware.single("slip"),
-    OrderController.update
+    OrderController.updateFile
   );
 
 export default router;
